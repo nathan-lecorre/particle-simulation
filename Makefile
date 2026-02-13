@@ -1,14 +1,18 @@
 CC = gcc -Wall -Wextra -std=c99
 
-obj="./obj"
-src="./src"
-bin="./bin"
-head="./headers"
+BIN = bin
+OBJ = obj
+SRC = src
+HEADERS = headers
 
-all:prog_a
+all: $(BIN)/prog_a
 
-%.o:%.c %.h
-	CC -c $< 
+$(OBJ)/%.o: $(SRC)/%.c $(HEADERS)/%.h
+	$(CC) -c $< -o $@
 
-prog_a:
-	CC  $^ -o $@
+$(BIN)/prog_a: $(OBJ)/machin.o
+	$(CC) $< -o $@ 
+
+clean:
+	rm $(OBJ)/*.o
+	rm $(BIN)/prog_a
