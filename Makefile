@@ -6,3 +6,9 @@ bin="./bin"
 head="./headers"
 
 all:prog_a
+
+%.o:%.c %.h
+	CC -c $< 
+
+prog_a:
+	CC  $^ -o $@
