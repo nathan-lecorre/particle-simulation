@@ -41,6 +41,13 @@
             <task id="8" name="task_A4" color="#8cb6ce" meeting="false" start="2026-02-13" duration="10" complete="0" thirdDate="2026-02-13" thirdDate-constraint="0" expand="true"/>
             <task id="6" name="task_A5" color="#8cb6ce" meeting="false" start="2026-02-13" duration="10" complete="0" thirdDate="2026-02-13" thirdDate-constraint="0" expand="true"/>
         </task>
+        <task id="34" name="Lot_B" color="#000000" meeting="false" start="2026-02-13" duration="10" complete="0" thirdDate="2026-02-13" thirdDate-constraint="0" expand="true" cost-manual-value="0.0" cost-calculated="true">
+            <task id="36" name="task_B1" color="#8cb6ce" meeting="false" start="2026-02-13" duration="10" complete="0" thirdDate="2026-02-13" thirdDate-constraint="0" expand="true" cost-manual-value="0.0" cost-calculated="true"/>
+            <task id="38" name="task_B2" color="#8cb6ce" meeting="false" start="2026-02-13" duration="10" complete="0" thirdDate="2026-02-13" thirdDate-constraint="0" expand="true" cost-manual-value="0.0" cost-calculated="true"/>
+            <task id="40" name="task_B3" color="#8cb6ce" meeting="false" start="2026-02-13" duration="10" complete="0" thirdDate="2026-02-13" thirdDate-constraint="0" expand="true" cost-manual-value="0.0" cost-calculated="true"/>
+            <task id="42" name="task_B4" color="#8cb6ce" meeting="false" start="2026-02-13" duration="10" complete="0" thirdDate="2026-02-13" thirdDate-constraint="0" expand="true" cost-manual-value="0.0" cost-calculated="true"/>
+            <task id="44" name="task_B5" color="#8cb6ce" meeting="false" start="2026-02-13" duration="10" complete="0" thirdDate="2026-02-13" thirdDate-constraint="0" expand="true" cost-manual-value="0.0" cost-calculated="true"/>
+        </task>
     </tasks>
     <resources>
         <resource id="0" name="Le Corre Nathan" function="Default:1" contacts="" phone=""/>
@@ -51,10 +58,15 @@
     </resources>
     <allocations>
         <allocation task-id="0" resource-id="0" function="Default:1" responsible="true" load="100.0"/>
+        <allocation task-id="36" resource-id="0" function="Default:1" responsible="true" load="100.0"/>
         <allocation task-id="8" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="42" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
         <allocation task-id="6" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="44" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
         <allocation task-id="13" resource-id="3" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="38" resource-id="3" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
         <allocation task-id="12" resource-id="4" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="40" resource-id="4" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
     </allocations>
     <vacations/>
     <previous/>
