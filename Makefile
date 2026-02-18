@@ -10,7 +10,7 @@ all: $(BIN)/prog_a
 $(OBJ)/%.o: $(SRC)/%.c $(HEADERS)/%.h
 	$(CC) -c $< -o $@
 
-$(BIN)/prog_a: $(OBJ)/machin.o
+$(BIN)/prog_a: $(OBJ)/main.o $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)/particules.o $(OBJ)/interface.o
 	$(CC) $< -o $@ 
 
 clean:
