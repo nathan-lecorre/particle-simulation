@@ -1,7 +1,7 @@
 #ifndef PARTICULES_H
 #define PARTICULES_H 
 
-typedef struct particule* particule;
+typedef void* particule;
 
 /*
 @requires : rien 
