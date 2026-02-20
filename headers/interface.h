@@ -36,7 +36,7 @@ void snapshot(env environnement, char* path, int wp, int hp);
 
 /*  @requires: path est une chaîne de caractère correctement allouée se terminant par la sentinelle nulle et est le chemin d'un répertoire vide avec les permissions d'écriture et de lecture
     @assigns: path
-    @ensures: écrit dans le répertoire path t fichier pbm représentant t états successif de environnement */
+    @ensures: écrit dans le répertoire path t fichiers pbm représentant t états successifs de environnement */
 void animate(env environnement, char* path, int wp, int hp, int t);
 
 
