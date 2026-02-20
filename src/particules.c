@@ -2,7 +2,7 @@
 #include <stdlib.h> 
 #include <math.h> 
 
-#include "particules.h"
+#include "../headers/particules.h"
 
 struct particule {
     float x; // Coordonnée x de la particule 
