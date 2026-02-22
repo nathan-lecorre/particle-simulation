@@ -15,9 +15,9 @@ particule create_particule(float x, float y, float vx, float vy) {
     struct particule *p = malloc(sizeof(struct particule));
     p->x=x;
     p->y=y;
-    float normev=sqrt(vx*vx+vy*vy); // Norme de la vitesse v de la particule de composantes vx et vy
-    p->vx=vx/(normev*normev); // Normalisation de vx
-    p->vy=vy/(normev*normev); // Normalisation de vy 
+    float normev2=vx*vx+vy*vy; // Norme au carré de la vitesse v de la particule de composantes vx et vy
+    p->vx=vx/normev2; // Normalisation de vx
+    p->vy=vy/normev2; // Normalisation de vy 
     return (particule) p;  
 }
 
@@ -64,15 +64,15 @@ void set_speed(particule p, float vx, float vy) {
 
 void move(particule p, float dt) {
     struct particule *part= (struct particule *) p;
-    part->x=(part->vx)/dt; // Calcul de la position x de p après un temps infinitésimal dt
-    part->y=(part->vy)/dt;  // Calcul de la position y de p après un temps infinitésimal dt  
+    part->x+=(part->vx)*dt; // Calcul de la position x de p après un temps infinitésimal dt
+    part->y+=(part->vy)*dt;  // Calcul de la position y de p après un temps infinitésimal dt  
 }
 
 float distance(particule p1, particule p2) {
     struct particule *part1= (struct particule *) p1;
     struct particule *part2= (struct particule *) p2; 
-    float distx2=fabsf((part1->x)-(part2->x)); // Calcul de la différence en valeur absolue de la position x entre p1 et p2
-    float disty2=fabsf((part1->y)-(part2->y)); // Calcul de la différence en valeur absolue de la position y entre p1 et p2 
-    float dist=sqrt(distx2+disty2); // Calcul de la distance 
+    float distx2=(part1->x)-(part2->x); // Calcul de la différence en valeur absolue de la position x entre p1 et p2
+    float disty2=(part1->y)-(part2->y); // Calcul de la différence en valeur absolue de la position y entre p1 et p2 
+    float dist=sqrt((distx2*distx2)+(disty2*disty2)); // Calcul de la distance 
     return dist;
 }
