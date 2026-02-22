@@ -1,8 +1,8 @@
 #ifndef _INTERFACE_H
 #define _INTERFACE_H
 
-#include <particules.h>
-#include <environnement.h>
+#include "particules.h"
+#include "environnement.h"
 
 /*  @requires: rien
     @assigns: rien
