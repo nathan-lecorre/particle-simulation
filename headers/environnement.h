@@ -9,7 +9,7 @@ typedef void* env;
 typedef const void* const_env;
 
 /*
-@requires : n, w, h, r et dt sont positifs. 
+@requires : n, r et dt sont positifs, w et h sont strictement positifs. 
 @assigns : rien 
 @ensures : crée un environnement de taille w*h et de durée des itérations de déplacement dt,
 avec n particules initialement au centre de l'environnement,
