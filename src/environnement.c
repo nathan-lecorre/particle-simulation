@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#define SPEED 1.0f // pour être un peut plus future-proof
+
 typedef struct {
     float w, h;
     float r;
@@ -35,7 +37,7 @@ env create_environnement(int n, float w, float h, float r, float dt) {
         exit(1);
     }
     for (int i = 0; i < n; i++) {
-        e->particules[i] = create_particule(w/2, h/2, 1, 0);
+        e->particules[i] = create_particule(w/2, h/2, SPEED, 0);
     }
 
     return (env)e;
@@ -112,6 +114,16 @@ float get_r(const_env e_voidptr) {
     return e->r;
 }
 
+static inline bool petit_devant(float d, float D) {
+    return d < 0.001f*D;
+}
+
+static inline bool distance_négligeable(float d, s_env* e) {
+    // SPEED*e->dt, e->w et e->h sont les distances caractéristiques de l'environnement
+    // on peut considérer toute distance petite devant ces distances caractéristiques nulle
+    return petit_devant(d, SPEED*e->dt) && petit_devant(d, e->w) && petit_devant(d, e->h);
+}
+
 static void corrected_move(particule, float, s_env*);
 
 // fait rebondir une particule sur le bord du haut
@@ -125,10 +137,14 @@ static void bounce_on_top(particule p, s_env* e) {
     // distances et temps que la particule a parcouru de trop ( y = h + dy )
     float dy = y - e->h;
     float dx = dy*vx/vy;
-    float dt = sqrt(dx*dx+dy*dy);
+    float dt = sqrt(dx*dx+dy*dy) / SPEED;
 
-    // j'ignore pour l'instant les edge-case dus aux approximations des flottants,
-    // qui sont assez difficiles à gérer proprement, et ne poseront probablement pas de problèmes
+    // traitement de edge-cases qui ne devraient probablement pas arriver
+    if (distance_négligeable(x-dx - 0, e))
+        dx = x; // de sorte que x-dx = 0
+    if (distance_négligeable(x-dx - e->w, e))
+        dx = x - e->w; // de sorte que x-dx = e->w
+
     if (x-dx < 0 || x-dx > e->w) {
         // la particule n'a pas rencontré le bord du haut en premier
         return;
@@ -209,6 +225,9 @@ void move_particules(env e_voidptr) {
         float barycentre_x = 0, barycentre_y = 0;
         int nb_voisins = 0;
         for (int j = 0; j < e->n; j++) {
+            // on ne veut pas que la particule interragisse avec elle même
+            if (j == i) continue; 
+
             if (distance(e->particules[i], e->particules[j]) < e->r) {
                 barycentre_x += get_x(e->particules[j]);
                 barycentre_y += get_y(e->particules[j]);
@@ -224,14 +243,14 @@ void move_particules(env e_voidptr) {
             float bary_part_y = get_y(e->particules[i]) - barycentre_y;
             float norme = sqrt(bary_part_x*bary_part_x + bary_part_y*bary_part_y);
 
-            if (norme == 0) {
+            if (distance_négligeable(norme, e)) {
                 // le barycentre est sur la particule
 
-                float teta = uniform(0.0f, M_PI); // angle du vecteur normale
-                set_speed(e->particules[i], cos(teta), sin(teta));
+                float teta = uniform(0.0f, M_PI); // angle du vecteur de norme SPEED
+                set_speed(e->particules[i], SPEED*cos(teta), SPEED*sin(teta));
             } else {
-                // vecteur normalisé qui s'éloigne du barycentre
-                set_speed(e->particules[i], bary_part_x/norme, bary_part_y/norme);
+                // vecteur de norme SPEED qui s'éloigne du barycentre
+                set_speed(e->particules[i], SPEED*bary_part_x/norme, SPEED*bary_part_y/norme);
             }
         }
     }
