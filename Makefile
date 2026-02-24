@@ -7,11 +7,11 @@ HEADERS = headers
 
 all: $(BIN)/prog_a
 
-$(OBJ)/%.o: $(SRC)/%.c $(HEADERS)/%.h
-	$(CC) -c $< -o $@
+$(OBJ)/%.o: $(SRC)/%.c
+	$(CC) -g -lm -c $< -o $@
 
 $(BIN)/prog_a: $(OBJ)/main.o $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)/particules.o $(OBJ)/interface.o
-	$(CC) $< -o $@ 
+	$(CC) -g $^ -o $@ -lm
 
 clean:
 	rm $(OBJ)/*.o
