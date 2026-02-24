@@ -168,28 +168,26 @@ static void bounce_on_top(particule p, s_env* e) {
 // d'où les fonctions mutuellement récursives
 static void corrected_move(particule p, float dt, s_env* e) {
     move(p, dt);
-    float x = get_x(p), y = get_y(p);
-    float vx = get_vx(p), vy = get_vy(p);
     float w = e->w, h = e->h;
 
-    if (y > h) {
+    if (get_y(p) > h) {
         bounce_on_top(p, e);
     }
     // pour les cas suivants, on tourne l'environnement pour toujours
     // se retrouver dans le cas y > h, on effectue le (ou les) rebond(s),
     // puis on retourne l'environnement
-    if (y < 0) {
-        set_position(p, x, h-y);
-        set_speed(p, vx, -vy);
+    if (get_y(p) < 0) {
+        set_position(p, get_x(p), h-get_y(p));
+        set_speed(p, get_vx(p), -get_vy(p));
 
         bounce_on_top(p, e);
 
         set_position(p, get_x(p), h-get_y(p));
         set_speed(p, get_vx(p), -get_vy(p));
     }
-    if (x > w) {
-        set_position(p, y, x);
-        set_speed(p, vy, vx);
+    if (get_x(p) > w) {
+        set_position(p, get_y(p), get_x(p));
+        set_speed(p, get_vy(p), get_vx(p));
         e->w = h;
         e->h = w;
 
@@ -200,9 +198,9 @@ static void corrected_move(particule p, float dt, s_env* e) {
         e->h = h;
         e->w = w;
     }
-    if (x < 0) {
-        set_position(p, y, w-x);
-        set_speed(p, vy, -vx);
+    if (get_x(p) < 0) {
+        set_position(p, get_y(p), w-get_x(p));
+        set_speed(p, get_vy(p), -get_vx(p));
         e->w = h;
         e->h = w;
 
