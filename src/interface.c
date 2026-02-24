@@ -38,9 +38,9 @@ void snapshot(env environnement, char* path, int wp, int hp){
     float he = get_h(environnement); // Hauteur de environnement
     char string_wp_hp[32]; // Contiendra le string "wp hp" avec wp et hp remplacé par leur valeur
     int string_wp_hp_length; // Contiendra la taille de la chaîne string_wp_hp
-    char* commentaire_body = "# %s represente l'environnement a un instant t.";
-    int commentaire_full_length = strlen(path) + strlen(commentaire_body); // On prend un peu de marge mais c'est pas grave
-    char* commentaire_full = malloc(commentaire_full_length);
+    char* commentaire_body = "# %s represente l'environnement a un instant t.\n";
+    int commentaire_full_length = strlen(path) + strlen(commentaire_body) - 2;
+    char* commentaire_full = malloc(commentaire_full_length+1);
     char* pixel_array = malloc(wp*hp); // Un tableau de taille wp*hp qui contiendra les pixels de l'image qu'on va écrire
 
     memset(pixel_array, '0', wp*hp);
@@ -53,6 +53,8 @@ void snapshot(env environnement, char* path, int wp, int hp){
     }
 
     string_wp_hp_length = snprintf(string_wp_hp, 32, "%d %d\n", wp, hp);
+
+    snprintf(commentaire_full, commentaire_full_length+1, commentaire_body, path); // On formate le commentaire correctement
 
     for(int i = 0; i < nb_particules; i++){
         particule part = get_particule(environnement, i);
