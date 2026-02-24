@@ -115,7 +115,7 @@ float get_r(const_env e_voidptr) {
 }
 
 static inline bool petit_devant(float d, float D) {
-    return d < 0.001f*D;
+    return fabs(d) < 0.001f*fabs(D);
 }
 
 static inline bool distance_négligeable(float d, s_env* e) {
@@ -179,8 +179,8 @@ static void corrected_move(particule p, float dt, s_env* e) {
 
         bounce_on_top(p, e);
 
-        set_position(p, x, h-y);
-        set_speed(p, vx, -vy);
+        set_position(p, get_x(p), h-get_y(p));
+        set_speed(p, get_vx(p), -get_vy(p));
     }
     if (x > w) {
         set_position(p, y, x);
@@ -190,25 +190,28 @@ static void corrected_move(particule p, float dt, s_env* e) {
 
         bounce_on_top(p, e);
 
-        set_position(p, x, y);
-        set_speed(p, vx, vy);
+        set_position(p, get_y(p), get_x(p));
+        set_speed(p, get_vy(p), get_vx(p));
         e->h = h;
         e->w = w;
     }
     if (x < 0) {
         set_position(p, y, w-x);
         set_speed(p, vy, -vx);
-        float temp = e->w;
         e->w = h;
         e->h = w;
 
         bounce_on_top(p, e);
 
-        set_position(p, w-x, y);
-        set_speed(p, -vx, vy);
+        set_position(p, w-get_y(p), get_x(p));
+        set_speed(p, -get_vy(p), get_vx(p));
         e->h = h;
         e->w = w;
     }
+}
+
+static inline bool in_bounds(particule p, const s_env* e) {
+    return get_x(p) >= 0 && get_y(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h;
 }
 
 void move_particules(env e_voidptr) {
@@ -219,6 +222,7 @@ void move_particules(env e_voidptr) {
 
     for (int i = 0; i < e->n; i++) {
         corrected_move(e->particules[i], e->dt, e);
+        assert(in_bounds(e->particules[i], e));
     }
 
     for (int i = 0; i < e->n; i++) {
