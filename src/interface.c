@@ -66,7 +66,7 @@ void snapshot(env environnement, char* path, int wp, int hp){
         xp = floorf(xe/(we + 1)*wp); // On prends we + 1 pour éviter un edge-case (c'est le cas de le dire :) ) quand la particule est pile au bord
         yp = floorf(ye/(he + 1)*hp);
 
-        if(0 <= xp && xp < wp && 0 <= yp && yp < hp) pixel_array[(wp-yp-1)*wp + xp] = '1'; // On essaye pas d'afficher les particules out of bounds pour ne pas SEGFAULT
+        if(0 <= xp && xp < wp && 0 <= yp && yp < hp) pixel_array[(hp-yp-1)*wp + xp] = '1'; // On essaye pas d'afficher les particules out of bounds pour ne pas SEGFAULT
     }
 
     fwrite("P1\n", 1, 3, bitmap);
