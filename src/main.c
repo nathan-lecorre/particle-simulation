@@ -3,19 +3,29 @@
 #include "../headers/particules.h"
 #include "../headers/interface.h"
 
-int main() {
-    env e = create_environnement(10, 600, 300, 10, 0.2);
+#include <stdlib.h>
+
+int main(int argc, char* argv[]) {
+
+    if (argc != 8) {
+        exit(EXIT_FAILURE);
+    }
+
+    int n = atoi(argv[1]);
+    float w = atof(argv[2]);
+    float h = atof(argv[3]);
+    float r = atof(argv[4]);
+    float dt = atof(argv[5]);
+
+    env e = create_environnement(n, w, h, r, dt);
 
     for (int i = 0 ; i<10 ; i++)
         move_particules(e);
-
-    particule p = get_particule(e, 5);
-    get_x(p); get_y(p); get_vx(p); get_vy(p);
-    set_speed(p, 5, 1);
-    move(p, 0.4);
     
-    char* path
-    animate(e,path,get_w(e),get_h(e),10);
+    char* path = argv[7];
+    int t = atoi(argv[6]);
+
+    animate(e,path,get_w(e),get_h(e),t);
     free_environnement(e);
     return 0;
 }
