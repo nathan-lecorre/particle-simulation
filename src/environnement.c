@@ -2,12 +2,17 @@
 #include "../headers/particules.h"
 #include "../headers/distribution.h"
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
 
 #define SPEED 1.0f // pour être un peut plus future-proof
+
+#ifndef M_PI
+#define M_PI atan(1)*4
+#endif
 
 typedef struct {
     float w, h;
@@ -250,7 +255,7 @@ void move_particules(env e_voidptr) {
             if (distance_négligeable(norme, e)) {
                 // le barycentre est sur la particule
 
-                float teta = uniform(0.0f, M_PI); // angle du vecteur de norme SPEED
+                float teta = uniform(0.0f, 2*M_PI); // angle du vecteur de norme SPEED
                 set_speed(e->particules[i], SPEED*cos(teta), SPEED*sin(teta));
             } else {
                 // vecteur de norme SPEED qui s'éloigne du barycentre
