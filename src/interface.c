@@ -34,19 +34,20 @@ float get_float(){
 void snapshot(env environnement, char* path, int wp, int hp){
 	FILE* bitmap;
 	int nb_particules = get_n(environnement);
-	int we = get_w(environnement); // Largeur de environnement
-	int he = get_h(environnement); // Hauteur de environnement
-	char* string_wp_hp = malloc(32); // Contiendra le string "wp hp" avec wp et hp remplacé par leur valeur
-    int string_wp_hp_length; // Contiendra la taille de la chaîne string_wp_hp
-    int commentaire_length = strlen(path) + 50;
-    char* commentaire = malloc(commentaire_length); // De la forme # path représente l'environnement à un instant t
+	float we = get_w(environnement); // Largeur de environnement
+	float he = get_h(environnement); // Hauteur de environnement
+	char* string_wp_hp[32]; // Contiendra le string "wp hp" avec wp et hp remplacé par leur valeur
+	int string_wp_hp_length; // Contiendra la taille de la chaîne string_wp_hp
+    char* commentaire_body = "# %s represente l'environnement a un instant t."
+    int commentaire_full_length = strlen(path) + strlen(commentaire_body); // On prend un peu de marge mais c'est pas grave
+    char* commentaire_full = malloc(commentaire_full_length);
 	char* pixel_array = malloc(wp*hp); // Un tableau de taille wp*hp qui contiendra les pixels de l'image qu'on va écrire
 
     memset(pixel_array, '0', wp*hp);
 	
 	bitmap = fopen(path, "w");
 	if(!bitmap){
-		fprintf(stderr, "[snapshot] : Couldn't take snapshot.");
+		fprintf(stderr, "[snapshot] : Couldn't take snapshot %s.\n", path);
 		perror("[fopen]");
 		return;
 	}
@@ -57,15 +58,15 @@ void snapshot(env environnement, char* path, int wp, int hp){
 
 	for(int i = 0; i < nb_particules; i++){
 		particule part = get_particule(environnement, i);
-		int xe, ye; // Les coordonnées de la particule i dans l'environnement
+		float xe, ye; // Les coordonnées de la particule i dans l'environnement
 		int xp, yp; // Les coordonnées de la particule i projetées sur la bitmap
 
-		xe = get_y(part);
+		xe = get_x(part);
 		ye = get_y(part);
-		xp = floorf(xe/we*wp);
-		yp = floorf(ye/he*hp);
+		xp = floorf(xe/(we + 1)*wp); // On prends we + 1 pour éviter un edge-case (c'est le cas de le dire :) ) quand la particule est pile au bord
+		yp = floorf(ye/(he + 1)*hp);
 
-        pixel_array[yp*wp + xp] = '1';
+        if(0 <= xp && xp < wp && 0 <= yp && yp < hp) pixel_array[(wp-yp-1)*wp + xp] = '1'; // On essaye pas d'afficher les particules out of bounds pour ne pas SEGFAULT
 	}
 
 	fwrite("P1\n", 1, 3, bitmap);
