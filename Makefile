@@ -16,3 +16,4 @@ $(BIN)/prog_a: $(OBJ)/main.o $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)
 clean:
 	rm $(OBJ)/*.o
 	rm $(BIN)/prog_a
+	rm *.pbm
