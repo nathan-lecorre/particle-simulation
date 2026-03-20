@@ -6,17 +6,16 @@ typedef void* particule;
 /*
 @requires : rien 
 @assigns : rien 
-@ensures : crée une particule avec ses coordonnées x,y et sa vitesse v de coordonnées vx,vy
+@ensures : crée une particule avec ses coordonnées x,y,z et sa vitesse v de coordonnées vx,vy,vz
 si la norme de v est non unitaire on la rend unitaire  
 */
-particule create_particule(float x, float y, float vx, float vy); 
+particule create_particule(float x, float y, float z, float vx, float vy, float vz); 
 
 /*
 @requires : p est un pointeur valide pour la particule 
 @assigns : rien 
 @ensures : libère la mémoire allouée pour p 
 */
-
 void free_particule(particule p);
 
 /*
@@ -24,7 +23,6 @@ void free_particule(particule p);
 @assigns : rien 
 @ensures : retourne l'abscisse x de p  
 */
-
 float get_x(particule p);
 
 /*
@@ -32,47 +30,55 @@ float get_x(particule p);
 @assigns : rien 
 @ensures : retourne l'ordonnée y de p
 */
-
 float get_y(particule p);
+
+/*
+@requires : p est un pointeur valide pour la particule 
+@assigns : rien 
+@ensures : retourne la hauteur z de p  
+*/
+float get_z(particule p);
 
 /*
 @requires : p est un pointeur valide pour la particule 
 @assigns : rien 
 @ensures : retourne l'abscisse vx de la vitesse v de p 
 */
-
 float get_vx(particule p);
 
 /*
 @requires : p est un pointeur valide pour la particule 
 @assigns : rien 
-@ensures : retourne l'ordonnée vx de la vitesse v de p 
+@ensures : retourne l'ordonnée vy de la vitesse v de p 
 */
-
 float get_vy(particule p);
 
 /*
 @requires : p est un pointeur valide pour la particule 
-@assigns : x et y dans p
-@ensures : rien mais p a les coordonnées x et y 
+@assigns : rien 
+@ensures : retourne la hauteur vz de la vitesse v de p 
 */
-
-void set_position(particule p, float x, float y);
+float get_vz(particule p);
 
 /*
 @requires : p est un pointeur valide pour la particule 
-@assigns : vx et vy dans p 
-@ensures : rien mais la vitesse v de p a le coordonnées vx et vy 
+@assigns : x,y,z dans p
+@ensures : rien mais p a les coordonnées x,y et z 
 */
-
-void set_speed(particule p, float vx, float vy);
+void set_position(particule p, float x, float y, float z);
 
 /*
 @requires : p est un pointeur valide pour la particule 
-@assigns : x,y,vx et vy dans p 
+@assigns : vx,vy,vz dans p 
+@ensures : rien mais la vitesse v de p a le coordonnées vx,vy et vz  
+*/
+void set_speed(particule p, float vx, float vy, float vz);
+
+/*
+@requires : p est un pointeur valide pour la particule 
+@assigns : x,y,z,vx,vy,vz dans p 
 @ensures : rien mais p se déplace pendant dt 
 */
-
 void move(particule p, float dt);
 
 /*
@@ -80,7 +86,6 @@ void move(particule p, float dt);
 @assigns : rien 
 @ensures : retourne la distance euclidienne entre p1 et p2 
 */
-
 float distance(particule p1, particule p2);
 
 #endif 
