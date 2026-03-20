@@ -11,9 +11,6 @@ struct particule {
     float vx; // Composante vx de la vitesse de la particule
     float vy; // Composante vy de la vitesse de la particule
     float vz; // Composante vz de la vitesse de la particule 
-    float ax; // Composante ax de l'accélération de la particule
-    float ay; // Composante ay de l'accélération de la particule
-    float az; // Composante az de l'accélération de la particule 
     float mass; // Masse de la particule
 };
 
@@ -22,10 +19,9 @@ particule create_particule(float x, float y, float z, float vx, float vy, float 
     p->x=x;
     p->y=y;
     p->z=z;
-    float normev=sqrt(vx*vx+vy*vy+vz*vz); // Norme de la vitesse v de la particule de composantes vx et vy
-    p->vx=vx/(normev*normev); // Normalisation de vx
-    p->vy=vy/(normev*normev); // Normalisation de vy 
-    p->vz=vz/(normev*normev); // Normalisation de vz 
+    p->vx=vx;
+    p->vy=vy;
+    p->vz=vz;
     return (particule) p;  
 }
 
@@ -69,21 +65,6 @@ float get_vz(particule p) {
     return vz; 
 }
 
-float get_ax(particule p) {
-    struct particule *part= (struct particule *) p;
-    return part->ax;
-}
-
-float get_ay(particule p) {
-    struct particule *part= (struct particule *) p;
-    return part->ay;
-}
-
-float get_az(particule p) {
-    struct particule *part= (struct particule *) p;
-    return part->az;
-}
-
 float get_mass(particule p) {
     struct particule *part= (struct particule *) p;
     return part->mass;
@@ -99,16 +80,9 @@ void set_position(particule p, float x, float y, float z) {
 void set_speed(particule p, float vx, float vy, float vz) {
     struct particule *part= (struct particule *) p;
     float normev=sqrt(vx*vx+vy*vy+vz*vz);
-    part->vx=vx/(normev*normev); // Normalisation de vx
-    part->vy=vy/(normev*normev); // Normalisation de vy 
-    part->vz=vz/(normev*normev); // Normalisation de vz 
-}
-
-void set_acceleration(particule p, float ax, float ay, float az) {
-    struct particule *part= (struct particule *) p;
-    part->ax = ax;
-    part->ay = ay;
-    part->az = az;
+    part->vx=vx;
+    part->vy=vy;
+    part->vz=vz;
 }
 
 void move(particule p, float dt) {
