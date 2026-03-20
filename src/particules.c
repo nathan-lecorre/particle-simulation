@@ -7,6 +7,7 @@
 struct particule {
     float x; // Coordonnée x de la particule 
     float y; // Coordonnée y de la particule 
+    float z; // Coordonnée z de la particule 
     float vx; // Composante vx de la vitesse de la particule
     float vy; // Composante vy de la vitesse de la particule
     float vz; // Composante vz de la vitesse de la particule 
@@ -70,9 +71,9 @@ void set_position(particule p, float x, float y, float z) {
     part->z=z;
 }
 
-void set_speed(particule p, float vx, float vy) {
+void set_speed(particule p, float vx, float vy, float vz) {
     struct particule *part= (struct particule *) p;
-    float normev=sqrt(vx*vx+vy*vy);
+    float normev=sqrt(vx*vx+vy*vy+vz*vz);
     part->vx=vx/(normev*normev); // Normalisation de vx
     part->vy=vy/(normev*normev); // Normalisation de vy 
     part->vz=vz/(normev*normev); // Normalisation de vz 
