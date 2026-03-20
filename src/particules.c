@@ -11,6 +11,10 @@ struct particule {
     float vx; // Composante vx de la vitesse de la particule
     float vy; // Composante vy de la vitesse de la particule
     float vz; // Composante vz de la vitesse de la particule 
+    float ax; // Composante ax de l'accélération de la particule
+    float ay; // Composante ay de l'accélération de la particule
+    float az; // Composante az de l'accélération de la particule 
+    float mass; // Masse de la particule
 };
 
 particule create_particule(float x, float y, float z, float vx, float vy, float vz) {
@@ -64,6 +68,27 @@ float get_vz(particule p) {
     float vz=part->vz;
     return vz; 
 }
+
+float get_ax(particule p) {
+    struct particule *part= (struct particule *) p;
+    return part->ax;
+}
+
+float get_ay(particule p) {
+    struct particule *part= (struct particule *) p;
+    return part->ay;
+}
+
+float get_az(particule p) {
+    struct particule *part= (struct particule *) p;
+    return part->az;
+}
+
+float get_mass(particule p) {
+    struct particule *part= (struct particule *) p;
+    return part->mass;
+}
+
 void set_position(particule p, float x, float y, float z) {
     struct particule *part= (struct particule *) p;
     part->x=x;
@@ -79,11 +104,18 @@ void set_speed(particule p, float vx, float vy, float vz) {
     part->vz=vz/(normev*normev); // Normalisation de vz 
 }
 
+void set_acceleration(particule p, float ax, float ay, float az) {
+    struct particule *part= (struct particule *) p;
+    part->ax = ax;
+    part->ay = ay;
+    part->az = az;
+}
+
 void move(particule p, float dt) {
     struct particule *part= (struct particule *) p;
     part->x=(part->vx)/dt; // Calcul de la position x de p après un temps infinitésimal dt
-    part->y=(part->vy)/dt;  // Calcul de la position y de p après un temps infinitésimal dt  
-    part->z=(part->vz)/dt; 
+    part->y=(part->vy)/dt; // Calcul de la position y de p après un temps infinitésimal dt  
+    part->z=(part->vz)/dt; // Calcul de la position z de p après un temps infinitésimal dt
 }
 
 float distance(particule p1, particule p2) {

@@ -62,6 +62,34 @@ float get_vz(particule p);
 
 /*
 @requires : p est un pointeur valide pour la particule 
+@assigns : rien 
+@ensures : retourne l'abscisse ax de la vitesse v de p 
+*/
+float get_ax(particule p);
+
+/*
+@requires : p est un pointeur valide pour la particule 
+@assigns : rien 
+@ensures : retourne l'ordonnée ay de la vitesse v de p 
+*/
+float get_ay(particule p);
+
+/*
+@requires : p est un pointeur valide pour la particule 
+@assigns : rien 
+@ensures : retourne la hauteur az de la vitesse v de p 
+*/
+float get_az(particule p);
+
+/*
+@requires : p est un pointeur valide pour la particule 
+@assigns : rien 
+@ensures : retourne masse "mass" de p 
+*/
+float get_mass(particule p);
+
+/*
+@requires : p est un pointeur valide pour la particule 
 @assigns : x,y,z dans p
 @ensures : rien mais p a les coordonnées x,y et z 
 */
