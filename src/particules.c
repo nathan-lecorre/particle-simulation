@@ -35,7 +35,7 @@ float get_x(particule p) {
 }
 
 float get_y(particule p) {;
-    float y=part->y;
+    float y=p->y;
     return y;
 }
 
