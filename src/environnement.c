@@ -15,14 +15,14 @@
 #endif
 
 typedef struct {
-    float w, h;
+    float w,h,d;
     float r;
     float dt;
     int n;
     particule* particules;
 } s_env;
 
-env create_environnement(int n, float w, float h, float r, float dt) {
+env create_environnement(int n, float w, float h, float d, float r, float dt) {
     // vérification des préconditions
     assert(n >= 0 && w >= 0 && h >= 0 && r >= 0 && dt >= 0);
 
@@ -101,6 +101,15 @@ float get_h(const_env e_voidptr) {
     return e->h;
 }
 
+float get_d(const_env e_voidptr) {
+    // vérification (partielle) de la précondition
+    assert(e_voidptr);
+
+    const s_env* e = (const s_env*)e_voidptr;
+
+    return e->d;
+}
+
 float get_dt(const_env e_voidptr) {
     // vérification (partielle) de la précondition
     assert(e_voidptr);
@@ -126,7 +135,7 @@ static inline bool petit_devant(float d, float D) {
 static inline bool distance_négligeable(float d, s_env* e) {
     // SPEED*e->dt, e->w et e->h sont les distances caractéristiques de l'environnement
     // on peut considérer toute distance petite devant ces distances caractéristiques nulle
-    return petit_devant(d, SPEED*e->dt) && petit_devant(d, e->w) && petit_devant(d, e->h);
+    return petit_devant(d, SPEED*e->dt) && petit_devant(d, e->w) && petit_devant(d, e->h) && petit_devant(d, e->d);
 }
 
 static void corrected_move(particule, float, s_env*);
@@ -134,15 +143,16 @@ static void corrected_move(particule, float, s_env*);
 // fait rebondir une particule sur le bord du haut
 // si et seulement si celle-ci a rencontré le bord du haut en premier dans son mouvement
 static void bounce_on_top(particule p, s_env* e) {
-    float x = get_x(p), y = get_y(p);
-    float vx = get_vx(p), vy = get_vy(p);
+    float x = get_x(p), y = get_y(p), z = get_z(p);
+    float vx = get_vx(p), vy = get_vy(p), vz = get_vz(p);
     // si vy = 0, alors la particule n'a pas pu dépasser la bordure du haut
     assert(vy != 0);
 
     // distances et temps que la particule a parcouru de trop ( y = h + dy )
     float dy = y - e->h;
+    float dz = dy*vz/vy; 
     float dx = dy*vx/vy;
-    float dt = sqrt(dx*dx+dy*dy) / SPEED;
+    float dt = sqrt(dx*dx+dy*dy+dz*dz) / SPEED;
 
     // traitement de edge-cases qui ne devraient probablement pas arriver
     if (distance_négligeable(x-dx - 0, e))
@@ -155,10 +165,21 @@ static void bounce_on_top(particule p, s_env* e) {
         return;
     }
 
+    if (distance_négligeable(z-dz - 0, e))
+        dz = z; // de sorte que z-dz = 0
+    if (distance_négligeable(x-dx - e->d, e))
+        dz = z - e->d; // de sorte que z-dz = e->d
+
+    if (z-dz < 0 || z-dz > e->d) {
+        // la particule n'a pas rencontré le bord du haut en premier
+        return;
+    }
+
+
     // la particule revient sur le bord du haut
-    set_position(p, x-dx, y-dy);
+    set_position(p, x-dx, y-dy,z-dz);
     // sa vitesse verticale s'oppose
-    set_speed(p, vx, -vy);
+    set_speed(p, vx, -vy, vz);
     // et la particule finit le mouvement qui lui reste a parcourir
     corrected_move(p, dt, e);
 }
@@ -168,7 +189,7 @@ static void bounce_on_top(particule p, s_env* e) {
 // d'où les fonctions mutuellement récursives
 static void corrected_move(particule p, float dt, s_env* e) {
     move(p, dt);
-    float w = e->w, h = e->h;
+    float w = e->w, h = e->h, d = e->d; 
 
     if (get_y(p) > h) {
         bounce_on_top(p, e);
@@ -177,39 +198,74 @@ static void corrected_move(particule p, float dt, s_env* e) {
     // se retrouver dans le cas y > h, on effectue le (ou les) rebond(s),
     // puis on retourne l'environnement
     if (get_y(p) < 0) {
-        set_position(p, get_x(p), h-get_y(p));
-        set_speed(p, get_vx(p), -get_vy(p));
+        set_position(p, get_x(p), h-get_y(p), get_z(p));
+        set_speed(p, get_vx(p), -get_vy(p), get_vz(p));
 
         bounce_on_top(p, e);
 
-        set_position(p, get_x(p), h-get_y(p));
-        set_speed(p, get_vx(p), -get_vy(p));
+        set_position(p, get_x(p), h-get_y(p), get_z(p));
+        set_speed(p, get_vx(p), -get_vy(p), get_vz(p));
     }
     if (get_x(p) > w) {
-        set_position(p, get_y(p), get_x(p));
-        set_speed(p, get_vy(p), get_vx(p));
+        set_position(p, get_y(p), get_x(p), get_z(p));
+        set_speed(p, get_vy(p), get_vx(p), get_vz(p));
         e->w = h;
         e->h = w;
+        e->d = d; 
 
         bounce_on_top(p, e);
 
-        set_position(p, get_y(p), get_x(p));
-        set_speed(p, get_vy(p), get_vx(p));
+        set_position(p, get_y(p), get_x(p), get_z(p));
+        set_speed(p, get_vy(p), get_vx(p), get_vz(p));
         e->h = h;
         e->w = w;
+        e->d = d; 
     }
     if (get_x(p) < 0) {
-        set_position(p, get_y(p), w-get_x(p));
-        set_speed(p, get_vy(p), -get_vx(p));
+        set_position(p, get_y(p), w-get_x(p), get_z(p));
+        set_speed(p, get_vy(p), -get_vx(p), get_vz(p));
         e->w = h;
         e->h = w;
+        e->d = d; 
 
         bounce_on_top(p, e);
 
-        set_position(p, w-get_y(p), get_x(p));
-        set_speed(p, -get_vy(p), get_vx(p));
+        set_position(p, w-get_y(p), get_x(p), get_z(p));
+        set_speed(p, -get_vy(p), get_vx(p), get_vz(p));
         e->h = h;
         e->w = w;
+        e->d = d; 
+    }
+
+      if (get_z(p) > d) {
+        set_position(p, get_x(p), d - get_z(p), get_y(p));
+        set_speed(p, get_vx(p), get_vz(p), -get_vy(p));
+        e->w = h;
+        e->h = w;
+        e->d = d; 
+
+        bounce_on_top(p, e);
+
+        set_position(p, get_x(p), d - get_z(p), get_y(p));
+        set_speed(p, get_vx(p), get_vz(p), -get_vy(p));
+        e->h = h;
+        e->w = w;
+        e->d = d; 
+    }
+    if (get_z(p) < 0) {
+        set_position(p, get_x(p), d - get_z(p), get_y(p));
+        set_speed(p, get_vx(p), get_vz(p), -get_vy(p));
+        e->w = h;
+        e->h = w;
+        e->d = d; 
+
+        bounce_on_top(p, e);
+
+        set_position(p, get_x(p), d - get_z(p), get_y(p));
+        set_speed(p, get_vx(p), get_vz(p), -get_vy(p));
+        e->h = h;
+        e->w = w;
+        e->d = d; 
     }
 }
 
