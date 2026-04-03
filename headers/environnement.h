@@ -9,13 +9,13 @@ typedef void* env;
 typedef const void* const_env;
 
 /*
-@requires : n, r et dt sont positifs, w et h sont strictement positifs. 
+@requires : n, r et dt sont positifs, w, h et d sont strictement positifs. 
 @assigns : rien 
 @ensures : crée un environnement de taille w*h et de durée des itérations de déplacement dt,
 avec n particules initialement au centre de l'environnement,
 de vitesse vers la droite, de rayon d'intéraction r.
 */
-env create_environnement(int n, float w, float h, float r, float dt);
+env create_environnement(int n, float w, float h, float d, float r, float dt);
 
 /*
 @requires : e a été créé avec create_environnement 
@@ -51,6 +51,13 @@ float get_w(const_env e);
 @ensures : renvoie la hauteur de l'environnement
 */
 float get_h(const_env e);
+
+/*
+@requires : e a été créé avec create_environnement
+@assigns : rien 
+@ensures : renvoie la profondeur de l'environnement
+*/
+float get_d(const_env e);
 
 /*
 @requires : e a été créé avec create_environnement
