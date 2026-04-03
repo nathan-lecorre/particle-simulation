@@ -4,6 +4,12 @@
 
 #include "../headers/particules.h"
 
+#define RHO 2.3 // masse volumique d'une particule atomique
+
+#ifndef M_PI
+#define M_PI atan(1)*4
+#endif
+
 struct particule {
     float x; // Coordonnée x de la particule 
     float y; // Coordonnée y de la particule 
@@ -14,7 +20,7 @@ struct particule {
     float mass; // Masse de la particule
 };
 
-particule create_particule(float x, float y, float z, float vx, float vy, float vz) {
+particule create_particule(float x, float y, float z, float vx, float vy, float vz, float mass) {
     particule p = malloc(sizeof(struct particule));
     p->x=x;
     p->y=y;
@@ -22,6 +28,7 @@ particule create_particule(float x, float y, float z, float vx, float vy, float 
     p->vx=vx;
     p->vy=vy;
     p->vz=vz;
+    p->mass=mass;
     return p;  
 }
 
@@ -63,14 +70,23 @@ float get_mass(particule p) {
     return p->mass;
 }
 
+float get_radius(particule p) {
+   float volume = p->mass / RHO;
+   float coeff = (4/3)*M_PI;
+   return pow(volume/coeff,1.0 / 3.0);
+}
+
 void set_position(particule p, float x, float y, float z) {
     p->x=x;
     p->y=y;
     p->z=z;
 }
 
+void set_mass(particule p, float mass) {
+    p->mass=mass;
+}
+
 void set_speed(particule p, float vx, float vy, float vz) {
-    float normev=sqrt(vx*vx+vy*vy+vz*vz);
     p->vx=vx;
     p->vy=vy;
     p->vz=vz;

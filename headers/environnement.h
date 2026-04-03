@@ -8,6 +8,9 @@
 typedef void* env;
 typedef const void* const_env;
 
+typedef struct perturbateur* perturbateur;
+typedef struct perturbateurs_list* perturbateurs_list;
+
 /*
 @requires : n, r et dt sont positifs, w, h et d sont strictement positifs. 
 @assigns : rien 
@@ -15,7 +18,7 @@ typedef const void* const_env;
 avec n particules initialement au centre de l'environnement,
 de vitesse vers la droite, de rayon d'intéraction r.
 */
-env create_environnement(int n, float w, float h, float d, float r, float dt);
+env create_environnement(int n, float w, float h, float d, float r, float dt, float mass);
 
 /*
 @requires : e a été créé avec create_environnement 

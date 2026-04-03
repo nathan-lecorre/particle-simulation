@@ -1,6 +1,7 @@
 #include "../headers/environnement.h"
 #include "../headers/particules.h"
 #include "../headers/distribution.h"
+#include "../headers/vector.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -10,9 +11,23 @@
 
 #define SPEED 1.0f // pour être un peut plus future-proof
 
+#define MU 1.8e-5
+
+#define CONST_GRAV 6.67e-11
+
 #ifndef M_PI
 #define M_PI atan(1)*4
 #endif
+
+struct perturbateur {
+    point position;
+    int nature; // 1 pour attracteur, -1 pour répulseur
+};
+
+struct perturbateurs_list {
+    perturbateur obj;
+    perturbateurs_list next;
+};
 
 typedef struct {
     float w,h,d;
@@ -20,9 +35,10 @@ typedef struct {
     float dt;
     int n;
     particule* particules;
+    perturbateurs_list objets;
 } s_env;
 
-env create_environnement(int n, float w, float h, float d, float r, float dt) {
+env create_environnement(int n, float w, float h, float d, float r, float dt, float mass) {
     // vérification des préconditions
     assert(n >= 0 && w >= 0 && h >= 0 && r >= 0 && d>=0 && dt >= 0);
 
@@ -34,6 +50,7 @@ env create_environnement(int n, float w, float h, float d, float r, float dt) {
     e->r = r;
     e->dt = dt;
     e->n = n;
+    e->objets = NULL;
 
     // allocation et initialisation des particules
     e->particules = malloc(n * sizeof(particule));
@@ -43,7 +60,7 @@ env create_environnement(int n, float w, float h, float d, float r, float dt) {
         exit(1);
     }
     for (int i = 0; i < n; i++) {
-        e->particules[i] = create_particule(w/2, h/2, d/2, SPEED, 0, 0);
+        e->particules[i] = create_particule(w/2, h/2, d/2, SPEED, 0, 0, mass);
     }
 
     return (env)e;
@@ -127,6 +144,21 @@ float get_r(const_env e_voidptr) {
     const s_env* e = (const s_env*)e_voidptr;
 
     return e->r;
+}
+
+void add_objet(env environnement_ptr, point p, int nature) {
+    
+    assert (fabs(nature) == 1);
+
+    s_env* environnement = (s_env*) environnement_ptr;
+
+    perturbateur obj = malloc(sizeof(struct perturbateur));
+    obj->position = p;
+    obj->nature = nature;
+
+    perturbateurs_list obj_list = malloc(sizeof(struct perturbateurs_list));
+    obj_list->obj = obj;
+    obj_list->next = environnement->objets;
 }
 
 static inline bool petit_devant(float d, float D) {
@@ -272,6 +304,47 @@ static void corrected_move(particule p, float dt, s_env* e) {
 
 static inline bool in_bounds(particule p, const s_env* e) {
     return get_x(p) >= 0 && get_y(p) >= 0 && get_z(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h && get_z(p) <= e->d;
+}
+
+vecteur frottements_fluides(particule p) {
+    float coeff = -6*M_PI*MU*get_radius(p);
+    vecteur tmp = create_vecteur(get_vx(p),get_vy(p),get_vz(p));
+    vecteur res = multivect(tmp,coeff);
+    free_vecteur(tmp);
+    return res;
+}
+
+vecteur force_attraction(particule p1, particule p2, env environnement_ptr) {
+
+    s_env* environnement = (s_env*) environnement_ptr;
+    float dist = distance(p1,p2);
+    vecteur res;
+
+    // Si les deux particules sont suffisamment éloignées, on y ajoute une force de gravitation
+
+    if (!distance_négligeable(dist,environnement)) {
+        float coeff = CONST_GRAV * (get_mass(p1) * get_mass(p2)) / pow(dist,3);
+        vecteur tmp = create_vecteur(get_x(p1) - get_x(p2), get_y(p1) - get_y(p2), get_z(p1) - get_z(p2));
+        res = multivect(tmp,coeff);
+        free_vecteur(tmp);
+    }
+
+    // Sinon, les particules sont pratiquement au même endroit, on applique donc une force éloignant la particule dans une 
+    // direction aléatoire en conservant la vitesse
+    else {
+        float norme = sqrt(get_vx(p1)*get_vx(p1) + get_vy(p1)*get_vy(p1) + get_vz(p1)*get_vz(p1));
+        float teta = uniform(0.0f, 2*M_PI);
+        float phi = uniform(0.0f, 2*M_PI);
+
+        res = create_vecteur(norme*get_mass(p1)*cos(phi)*sin(teta)/environnement->dt, 
+                            norme*get_mass(p1)*sin(teta)*sin(phi)/environnement->dt, 
+                            norme*get_mass(p1)*cos(teta)/environnement->dt);
+    }
+    return res;
+}
+
+vecteur get_acceleration(particule p, env environnement) {
+    return NULL;
 }
 
 void move_particules(env e_voidptr) {

@@ -9,7 +9,7 @@ typedef struct particule* particule;
 @ensures : crée une particule avec ses coordonnées x,y,z et sa vitesse v de coordonnées vx,vy,vz
 si la norme de v est non unitaire on la rend unitaire  
 */
-particule create_particule(float x, float y, float z, float vx, float vy, float vz); 
+particule create_particule(float x, float y, float z, float vx, float vy, float vz, float mass); 
 
 /*
 @requires : p est un pointeur valide pour la particule 
@@ -63,30 +63,16 @@ float get_vz(particule p);
 /*
 @requires : p est un pointeur valide pour la particule 
 @assigns : rien 
-@ensures : retourne l'abscisse ax de la vitesse v de p 
-*/
-float get_ax(particule p);
-
-/*
-@requires : p est un pointeur valide pour la particule 
-@assigns : rien 
-@ensures : retourne l'ordonnée ay de la vitesse v de p 
-*/
-float get_ay(particule p);
-
-/*
-@requires : p est un pointeur valide pour la particule 
-@assigns : rien 
-@ensures : retourne la hauteur az de la vitesse v de p 
-*/
-float get_az(particule p);
-
-/*
-@requires : p est un pointeur valide pour la particule 
-@assigns : rien 
-@ensures : retourne masse "mass" de p 
+@ensures : retourne l'attribut "mass" de p 
 */
 float get_mass(particule p);
+
+/*
+@requires : p est un pointeur valide pour la particule 
+@assigns : rien 
+@ensures : retourne le rayon de la particule
+*/
+float get_radius(particule p);
 
 /*
 @requires : p est un pointeur valide pour la particule 
@@ -101,6 +87,13 @@ void set_position(particule p, float x, float y, float z);
 @ensures : rien mais la vitesse v de p a le coordonnées vx,vy et vz  
 */
 void set_speed(particule p, float vx, float vy, float vz);
+
+/*
+@requires : p est un pointeur valide pour la particule 
+@assigns : mass dans p
+@ensures : modifie l'attribut "mass" de la particule p
+*/
+void set_mass(particule p, float mass);
 
 /*
 @requires : p est un pointeur valide pour la particule 
