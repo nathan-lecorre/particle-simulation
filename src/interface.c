@@ -80,10 +80,13 @@ void snapshot(env environnement, char* path, int wp, int hp){
 }
 
 void animate(env environnement, char* path, int wp, int hp, int t){
-    char* filepath = malloc(MAX_PATH_LENGTH);
+    char* filepath = malloc(MAX_PATH_LENGTH + 1);
 
     for(int i = 0; i < t; i++){
-        snprintf(filepath, MAX_PATH_LENGTH, "%s/env-%d.pbm", path, i);
+        if(snprintf(filepath, MAX_PATH_LENGTH + 1, "%s/env-%d.pbm", path, i) > MAX_PATH_LENGTH){
+            fprintf(stderr, "[animate]: Filepath too long.\n");
+            return;
+        }
         snapshot(environnement, filepath, wp, hp);
         move_particules(environnement);
     }
