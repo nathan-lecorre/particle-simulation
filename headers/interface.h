@@ -32,12 +32,11 @@ float get_float();
 /*  @requires: path est une chaîne de caractère correctement allouée se terminant par la sentinelle nulle et est le chemin d'un fichier de type pbm avec les permissions d'écriture
     @assigns: path
     @ensures: écrit dans le fichier path l'état actuel de environnement */
-void snapshot(env environnement, char* path, int wp, int hp);
+void snapshot(env environnement, char* path, camera* cam, int w_res, int h_res);
 
 /*  @requires: path est une chaîne de caractère correctement allouée se terminant par la sentinelle nulle et est le chemin d'un répertoire vide avec les permissions d'écriture et de lecture
     @assigns: path
     @ensures: écrit dans le répertoire path t fichiers pbm représentant t états successifs de environnement */
-void animate(env environnement, char* path, int wp, int hp, int t);
-
+void animate(env environnement, char* path, camera* cam, int w_res, int h_res, int t);
 
 #endif
