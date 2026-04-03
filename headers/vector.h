@@ -9,6 +9,12 @@ typedef struct vecteur* vecteur;
 typedef struct point* point; 
 typedef struct droite* droite;
 typedef struct plan* plan; 
+typedef enum {
+    RESULT_VIDE,
+    RESULT_POINT, 
+    RESULT_DROITE, 
+    RESULT_PLAN
+} TypeTest; 
 
 /* -------------------------------------------------------*/
 /********** Fonctions basiques pour les vecteurs **********/
@@ -24,7 +30,7 @@ vecteur create_vecteur(float x, float y, float z);
 /* 
 @requires : rien 
 @assigns : rien 
-@ensures : alloue la mémoire d'un vecteur 
+@ensures : libère la mémoire d'un vecteur 
 */
 void free_vecteur(vecteur v);
 
@@ -82,39 +88,45 @@ vecteur produit_vectoriel(vecteur v1, vecteur v2);
 /* ---------------------------------------------------------------------------------*/
 
 /*
-@requires :
-@assigns : 
-@ensures :
+@requires : d est un pointeur valide pour les droites 
+@assigns : rien 
+@ensures : retourne d d'angle alpha dans le sens trigo 
 */
 
-droite rotation_droite(droite d); 
+droite rotation_droite(droite d, float alpha); 
 
 /*
-@requires : 
-@assigns : 
-@ensures :
+@requires : P est un pointeur valide pour les plans 
+@assigns : rien 
+@ensures : retourne un plan d'angle alpha dans le sens trigo 
 */
 
-plan rotation_plan(plan P);
+plan rotation_plan(plan P, float alpha);
 
 /* --------------------------------------------------------------------------------------*/
 /********** Fonctions basiques pour les opérations d'intersection d'éléments *************/
 /* --------------------------------------------------------------------------------------*/
 
 /*
-@requires :
-@assigns : 
-@ensures :
+@requires : d1 et d2 sont deux pointeurs valides pour les droites 
+@assigns : rien 
+@ensures : retourne l'intersection de d1 et d2 de nature différente selon le résultat :
+- si les deux droites sont confondues alors retourne l'une des deux droites 
+- si les deux droites se croisent en un point retourne ce point 
+- si les deux droites ne sont pas concourantes alors retourne null 
 */
 
-point inter_droite(droite d1, droite d2); 
+TypeTest inter_droite(droite d1, droite d2); 
 
 /*
-@requires :
-@assigns : 
-@ensures :
+@requires : P1 et P2 sont deux pointeurs valides pour les plans 
+@assigns : rien 
+@ensures : retourne l'intersection de P1 et P2 de nature différente selon le résultat : 
+- si les deux plans sont confondus alors retourne l'un des deux plans 
+- si les deux plans se croisent en une droite alors retourne ce plan 
+- si les deux plans ne se croisent pas alors retourne null 
 */
 
-droite plan_inter_plan(plan P1, plan P2); 
+TypeTest plan_inter_plan(plan P1, plan P2); 
 
 #endif 
