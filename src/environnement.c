@@ -24,12 +24,13 @@ typedef struct {
 
 env create_environnement(int n, float w, float h, float d, float r, float dt) {
     // vérification des préconditions
-    assert(n >= 0 && w >= 0 && h >= 0 && r >= 0 && dt >= 0);
+    assert(n >= 0 && w >= 0 && h >= 0 && r >= 0 && d>=0 && dt >= 0);
 
     // allocation et initialisation de l'environnement
     s_env* e = malloc(sizeof(s_env)); // pas trop de risque d'echec du malloc
     e->w = w;
     e->h = h;
+    e->d = d; 
     e->r = r;
     e->dt = dt;
     e->n = n;
@@ -42,7 +43,7 @@ env create_environnement(int n, float w, float h, float d, float r, float dt) {
         exit(1);
     }
     for (int i = 0; i < n; i++) {
-        e->particules[i] = create_particule(w/2, h/2, SPEED, 0);
+        e->particules[i] = create_particule(w/2, h/2, d/2, SPEED, 0, 0);
     }
 
     return (env)e;
@@ -270,7 +271,7 @@ static void corrected_move(particule p, float dt, s_env* e) {
 }
 
 static inline bool in_bounds(particule p, const s_env* e) {
-    return get_x(p) >= 0 && get_y(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h;
+    return get_x(p) >= 0 && get_y(p) >= 0 && get_z(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h && get_z(p) <= e->d;
 }
 
 void move_particules(env e_voidptr) {
@@ -285,7 +286,7 @@ void move_particules(env e_voidptr) {
     }
 
     for (int i = 0; i < e->n; i++) {
-        float barycentre_x = 0, barycentre_y = 0;
+        float barycentre_x = 0, barycentre_y = 0 , barycentre_z = 0; 
         int nb_voisins = 0;
         for (int j = 0; j < e->n; j++) {
             // on ne veut pas que la particule interragisse avec elle même
@@ -294,26 +295,30 @@ void move_particules(env e_voidptr) {
             if (distance(e->particules[i], e->particules[j]) < e->r) {
                 barycentre_x += get_x(e->particules[j]);
                 barycentre_y += get_y(e->particules[j]);
+                barycentre_z += get_z(e->particules[j]);
                 nb_voisins++;
             }
         }
         if (nb_voisins != 0) {
             barycentre_x /= nb_voisins;
             barycentre_y /= nb_voisins;
+            barycentre_z /= nb_voisins; 
 
             // vecteur (barycentre des voisins)->(particule)
             float bary_part_x = get_x(e->particules[i]) - barycentre_x;
             float bary_part_y = get_y(e->particules[i]) - barycentre_y;
-            float norme = sqrt(bary_part_x*bary_part_x + bary_part_y*bary_part_y);
+            float bary_part_z = get_z(e->particules[i]) - barycentre_z; 
+            float norme = sqrt(bary_part_x*bary_part_x + bary_part_y*bary_part_y + bary_part_z*bary_part_z);
 
             if (distance_négligeable(norme, e)) {
                 // le barycentre est sur la particule
 
                 float teta = uniform(0.0f, 2*M_PI); // angle du vecteur de norme SPEED
-                set_speed(e->particules[i], SPEED*cos(teta), SPEED*sin(teta));
+                float phi = uniform(0.0f, 2*M_PI); // 
+                set_speed(e->particules[i], SPEED*cos(phi)*sin(teta), SPEED*sin(teta)*sin(phi), SPEED*cos(teta));
             } else {
                 // vecteur de norme SPEED qui s'éloigne du barycentre
-                set_speed(e->particules[i], SPEED*bary_part_x/norme, SPEED*bary_part_y/norme);
+                set_speed(e->particules[i], SPEED*bary_part_x/norme, SPEED*bary_part_y/norme, SPEED*bary_part_z/norme);
             }
         }
     }
