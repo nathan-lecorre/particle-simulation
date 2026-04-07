@@ -314,9 +314,10 @@ vecteur frottements_fluides(particule p) {
     return res;
 }
 
-vecteur force_attraction(particule p1, particule p2, env environnement_ptr) {
+vecteur force_attraction(particule p1, particule p2, s_env* environnement) {
 
-    s_env* environnement = (s_env*) environnement_ptr;
+    // TODO : Modifier pour que le deuxième argument soit un point et non une particule
+
     float dist = distance(p1,p2);
     vecteur res;
 
@@ -343,8 +344,75 @@ vecteur force_attraction(particule p1, particule p2, env environnement_ptr) {
     return res;
 }
 
-vecteur get_acceleration(particule p, env environnement) {
-    return NULL;
+vecteur force_perturbateurs(particule p, s_env* environnement) {
+
+    vecteur res = create_vecteur(0.0,0.0,0.0);
+
+    perturbateurs_list objets = environnement->objets;
+
+    while (objets != NULL) {
+        perturbateur obj = objets->obj;
+        point pos_obj = obj->position;
+
+        particule tmp = create_particule(get_x_point(pos_obj),get_y_point(pos_obj),get_z_point(pos_obj),0,0,0,0);
+        vecteur force_sur_obj = force_attraction(p,tmp,environnement);
+        
+        vecteur res_tmp = ajout(res,force_sur_obj);
+        free_vecteur(res);
+        free_vecteur(force_sur_obj);
+        free_particule(tmp);
+        res = res_tmp;
+        
+        objets = objets->next;
+    }
+}
+
+vecteur forces_totales(int i, s_env* environnement) {
+
+    particule p = environnement->particules[i];
+
+    vecteur frottements = frottements_fluides(p);
+    vecteur perturbations = force_perturbateurs(p,environnement);
+    vecteur attraction = create_vecteur(0,0,0);
+
+    for (int j = 0; j < environnement->n; j++) {
+        // on ne veut pas que la particule interragisse avec elle même
+        if (j == i) continue; 
+
+        particule pj = environnement->particules[j];
+
+        if (distance(p, pj) < environnement->r) {
+            vecteur force = force_attraction(p,pj,environnement);
+            vecteur tmp = ajout(force,attraction);
+            free_vecteur(attraction);
+            free_vecteur(force);
+            attraction = tmp;
+            
+        }
+    }
+
+    vecteur add1 = ajout(frottements,perturbations);
+    vecteur res = ajout(add1,attraction);
+    free_vecteur(attraction);
+    free_vecteur(perturbations);
+    free_vecteur(frottements);
+    free_vecteur(add1);
+
+    return res;
+}
+
+vecteur get_acceleration(int i, env environnement_ptr) {
+    s_env* environnement = (s_env*) environnement_ptr;
+
+    vecteur forces = forces_totales(i,environnement);
+
+    particule p = environnement->particules[i];
+    float mass = get_mass(p);
+
+    vecteur res = multivect(forces,1/mass);
+
+    free_vecteur(forces);
+    return res;
 }
 
 void move_particules(env e_voidptr) {
