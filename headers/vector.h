@@ -14,7 +14,9 @@ typedef enum {
     RESULT_POINT, 
     RESULT_DROITE, 
     RESULT_PLAN
-} TypeTest; 
+} TypeResultat;
+typedef struct ResultatIntersection* ResultatIntersection;
+ 
 
 /* -------------------------------------------------------*/
 /********** Fonctions basiques pour les vecteurs **********/
@@ -152,7 +154,7 @@ vecteur plan_get_vecteur(plan p);
 float get_distance(plan p);
 
 /* ---------------------------------------------------------------------------------*/
-/********** Fonctions basiques pour les opérations de rotation d'éléments ***********/
+/********** Fonctions pour les opérations de rotation d'éléments ***********/
 /* ---------------------------------------------------------------------------------*/
 
 /*
@@ -172,27 +174,19 @@ droite rotation_droite(droite d, float angle);
 plan rotation_plan(plan p, float angle);
 
 /* ---------------------------------------------------------------------------------*/
-/********** Fonctions basiques pour les opérations de rotation d'éléments ***********/
+/********** Fonctions pour les opérations de rotation d'éléments ***********/
 /* ---------------------------------------------------------------------------------*/
 
 /*
 @requires : d est un pointeur valide pour les droites 
 @assigns : rien 
-@ensures : retourne d d'angle alpha dans le sens trigo 
+@ensures : retourne d d'angle d_teta (latitude) et d_phi (longitude) dans le sens trigo 
 */
 
-droite rotation_droite(droite d, float alpha); 
-
-/*
-@requires : P est un pointeur valide pour les plans 
-@assigns : rien 
-@ensures : retourne un plan d'angle alpha dans le sens trigo 
-*/
-
-plan rotation_plan(plan P, float alpha);
+void rotation_droite(droite d, float d_teta, float d_phi); 
 
 /* --------------------------------------------------------------------------------------*/
-/********** Fonctions basiques pour les opérations d'intersection d'éléments *************/
+/********** Fonctions pour les opérations d'intersection d'éléments *************/
 /* --------------------------------------------------------------------------------------*/
 
 /*
@@ -204,17 +198,6 @@ plan rotation_plan(plan P, float alpha);
 - si les deux droites ne sont pas concourantes alors retourne null 
 */
 
-TypeTest inter_droite(droite d1, droite d2); 
-
-/*
-@requires : P1 et P2 sont deux pointeurs valides pour les plans 
-@assigns : rien 
-@ensures : retourne l'intersection de P1 et P2 de nature différente selon le résultat : 
-- si les deux plans sont confondus alors retourne l'un des deux plans 
-- si les deux plans se croisent en une droite alors retourne ce plan 
-- si les deux plans ne se croisent pas alors retourne null 
-*/
-
-TypeTest plan_inter_plan(plan P1, plan P2); 
+TypeResultat inter_droite(droite d1, droite d2); 
 
 #endif 
