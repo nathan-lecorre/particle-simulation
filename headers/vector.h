@@ -50,10 +50,10 @@ vecteur ajout(vecteur v1, vecteur v2);
 
 /*
 @requires : p est un pointeur valide pour la particule 
-@assigns : rien 
-@ensures : retourne le vecteur multiplié par un scalaire (ou une norme)
+@assigns : v 
+@ensures : multiplie v par lambda 
 */
-vecteur multivect(vecteur v, float lambda);
+void multivect(vecteur v, float lambda);
 
 /* 
 @requires: v est un pointeur valide pour le vecteur 
@@ -82,6 +82,94 @@ float produit_scalaire(vecteur v1, vecteur v2);
 @ensures : retourne le vecteur résultant du produit vectorielle de v1 et v2 
 */
 vecteur produit_vectoriel(vecteur v1, vecteur v2);
+
+/* ---------------------------------------------------------------------------------*/
+/********** Fonctions basiques pour les points ***********/
+/* ---------------------------------------------------------------------------------*/
+
+/*
+@requires : p est un pointeur valide pour le point
+@assigns : rien 
+@ensures : retourne l'abscisse x de p  
+*/
+
+float point_get_x(point p); 
+
+/*
+@requires : p est un pointeur valide pour le point
+@assigns : rien 
+@ensures : retourne l'ordonnée y de p  
+*/
+
+float point_get_y(point p);
+
+/*
+@requires : p est un pointeur valide pour le point
+@assigns : rien 
+@ensures : retourne la profondeur z de p  
+*/
+
+float point_get_z(point p);
+
+/* ---------------------------------------------------------------------------------*/
+/********** Fonctions basiques pour les droites ***********/
+/* ---------------------------------------------------------------------------------*/
+
+/*
+@requires : d est un pointeur valide pour la droite 
+@assigns : rien 
+@ensures : retourne le point défini appartenant à d  
+*/
+
+point get_point(droite d);
+
+/*
+@requires : d est un pointeur valide pour la droite 
+@assigns : rien 
+@ensures : retourne le vecteur directeur de d 
+*/
+
+vecteur droite_get_vecteur(droite d);
+
+/* ---------------------------------------------------------------------------------*/
+/********** Fonctions basiques pour les plans ***********/
+/* ---------------------------------------------------------------------------------*/
+
+/*
+@requires : p est un pointeur valide pour le plan  
+@assigns : rien 
+@ensures : retourne le vecteur normal de p 
+*/
+
+vecteur plan_get_vecteur(plan p); 
+
+/*
+@requires : p est un pointeur valide pour le plan 
+@assigns : rien 
+@ensures : retourne la distance par rapport à un point de p
+*/
+
+float get_distance(plan p);
+
+/* ---------------------------------------------------------------------------------*/
+/********** Fonctions basiques pour les opérations de rotation d'éléments ***********/
+/* ---------------------------------------------------------------------------------*/
+
+/*
+@requires : d est un pointeur valide pour la droite 
+@assigns : rien 
+@ensures : retourne une droite tournée d'un angle dans le sens trigonométrique
+*/
+
+droite rotation_droite(droite d, float angle);
+
+/*
+@requires : p est un pointeur valide pour le plan 
+@assigns : rien 
+@ensures : retourne un plan tourné d'un angle dans le sens trigonométrique 
+*/
+
+plan rotation_plan(plan p, float angle);
 
 /* ---------------------------------------------------------------------------------*/
 /********** Fonctions basiques pour les opérations de rotation d'éléments ***********/
