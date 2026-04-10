@@ -308,9 +308,8 @@ static inline bool in_bounds(particule p, const s_env* e) {
 
 vecteur frottements_fluides(particule p) {
     float coeff = -6*M_PI*MU*get_radius(p);
-    vecteur tmp = create_vecteur(get_vx(p),get_vy(p),get_vz(p));
-    vecteur res = multivect(tmp,coeff);
-    free_vecteur(tmp);
+    vecteur res = create_vecteur(get_vx(p),get_vy(p),get_vz(p));
+    multivect(res,coeff);
     return res;
 }
 
@@ -325,9 +324,8 @@ vecteur force_attraction(particule p1, particule p2, s_env* environnement) {
 
     if (!distance_négligeable(dist,environnement)) {
         float coeff = CONST_GRAV * (get_mass(p1) * get_mass(p2)) / pow(dist,3);
-        vecteur tmp = create_vecteur(get_x(p1) - get_x(p2), get_y(p1) - get_y(p2), get_z(p1) - get_z(p2));
-        res = multivect(tmp,coeff);
-        free_vecteur(tmp);
+        res = create_vecteur(get_x(p1) - get_x(p2), get_y(p1) - get_y(p2), get_z(p1) - get_z(p2));
+        multivect(res,coeff);
     }
 
     // Sinon, les particules sont pratiquement au même endroit, on applique donc une force éloignant la particule dans une 
@@ -354,7 +352,7 @@ vecteur force_perturbateurs(particule p, s_env* environnement) {
         perturbateur obj = objets->obj;
         point pos_obj = obj->position;
 
-        particule tmp = create_particule(get_x_point(pos_obj),get_y_point(pos_obj),get_z_point(pos_obj),0,0,0,0);
+        particule tmp = create_particule(point_get_y(pos_obj),point_get_y(pos_obj),point_get_y(pos_obj),0,0,0,0);
         vecteur force_sur_obj = force_attraction(p,tmp,environnement);
         
         vecteur res_tmp = ajout(res,force_sur_obj);
@@ -401,17 +399,15 @@ vecteur forces_totales(int i, s_env* environnement) {
     return res;
 }
 
-vecteur get_acceleration(int i, env environnement_ptr) {
-    s_env* environnement = (s_env*) environnement_ptr;
+vecteur get_acceleration(int i, s_env* environnement) {
 
-    vecteur forces = forces_totales(i,environnement);
+    vecteur res = forces_totales(i,environnement);
 
     particule p = environnement->particules[i];
     float mass = get_mass(p);
 
-    vecteur res = multivect(forces,1/mass);
+    multivect(res,1/mass);
 
-    free_vecteur(forces);
     return res;
 }
 
@@ -427,40 +423,12 @@ void move_particules(env e_voidptr) {
     }
 
     for (int i = 0; i < e->n; i++) {
-        float barycentre_x = 0, barycentre_y = 0 , barycentre_z = 0; 
-        int nb_voisins = 0;
-        for (int j = 0; j < e->n; j++) {
-            // on ne veut pas que la particule interragisse avec elle même
-            if (j == i) continue; 
+        vecteur new_v = get_acceleration(i, e);
+        multivect(new_v,e->dt);
 
-            if (distance(e->particules[i], e->particules[j]) < e->r) {
-                barycentre_x += get_x(e->particules[j]);
-                barycentre_y += get_y(e->particules[j]);
-                barycentre_z += get_z(e->particules[j]);
-                nb_voisins++;
-            }
-        }
-        if (nb_voisins != 0) {
-            barycentre_x /= nb_voisins;
-            barycentre_y /= nb_voisins;
-            barycentre_z /= nb_voisins; 
+        particule p = get_particule(e_voidptr,i);
+        set_speed(p,get_x_vect(new_v),get_y_vect(new_v),get_z_vect(new_v));
 
-            // vecteur (barycentre des voisins)->(particule)
-            float bary_part_x = get_x(e->particules[i]) - barycentre_x;
-            float bary_part_y = get_y(e->particules[i]) - barycentre_y;
-            float bary_part_z = get_z(e->particules[i]) - barycentre_z; 
-            float norme = sqrt(bary_part_x*bary_part_x + bary_part_y*bary_part_y + bary_part_z*bary_part_z);
-
-            if (distance_négligeable(norme, e)) {
-                // le barycentre est sur la particule
-
-                float teta = uniform(0.0f, 2*M_PI); // angle du vecteur de norme SPEED
-                float phi = uniform(0.0f, 2*M_PI); // 
-                set_speed(e->particules[i], SPEED*cos(phi)*sin(teta), SPEED*sin(teta)*sin(phi), SPEED*cos(teta));
-            } else {
-                // vecteur de norme SPEED qui s'éloigne du barycentre
-                set_speed(e->particules[i], SPEED*bary_part_x/norme, SPEED*bary_part_y/norme, SPEED*bary_part_z/norme);
-            }
-        }
+        free_vecteur(new_v);
     }
 }
