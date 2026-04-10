@@ -10,7 +10,6 @@ typedef struct point* point;
 typedef struct droite* droite;
 typedef struct plan* plan; 
 typedef enum {
-    RESULT_VIDE,
     RESULT_POINT, 
     RESULT_DROITE, 
     RESULT_PLAN
