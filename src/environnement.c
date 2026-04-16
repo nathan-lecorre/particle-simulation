@@ -21,7 +21,7 @@
 
 struct perturbateur {
     point position;
-    int nature; // 1 pour attracteur, -1 pour répulseur
+    int nature; // 1 pour répulseur, -1 pour attracteur
 };
 
 struct perturbateurs_list {
@@ -146,11 +146,17 @@ float get_r(const_env e_voidptr) {
     return e->r;
 }
 
+static inline bool in_bounds_point(point p, const s_env* e) {
+    return point_get_x(p) >= 0 && point_get_y(p) >= 0 && point_get_z(p) >= 0 && point_get_x(p) <= e->w && point_get_y(p) <= e->h && point_get_z(p) <= e->d;
+}
+
 void add_objet(env environnement_ptr, point p, int nature) {
     
-    assert (fabs(nature) == 1);
+    assert (abs(nature) == 1);
 
     s_env* environnement = (s_env*) environnement_ptr;
+
+    assert (in_bounds_point(p,environnement));
 
     perturbateur obj = malloc(sizeof(struct perturbateur));
     obj->position = p;
@@ -159,6 +165,8 @@ void add_objet(env environnement_ptr, point p, int nature) {
     perturbateurs_list obj_list = malloc(sizeof(struct perturbateurs_list));
     obj_list->obj = obj;
     obj_list->next = environnement->objets;
+
+    environnement->objets = obj_list;
 }
 
 static inline bool petit_devant(float d, float D) {
@@ -185,7 +193,7 @@ static void bounce_on_top(particule p, s_env* e) {
     float dy = y - e->h;
     float dz = dy*vz/vy; 
     float dx = dy*vx/vy;
-    float dt = sqrt(dx*dx+dy*dy+dz*dz) / SPEED;
+    float dt = sqrt(dx*dx+dy*dy+dz*dz) / sqrt(vx*vx+vy*vy+vz*vz);
 
     // traitement de edge-cases qui ne devraient probablement pas arriver
     if (distance_négligeable(x-dx - 0, e))
@@ -200,7 +208,7 @@ static void bounce_on_top(particule p, s_env* e) {
 
     if (distance_négligeable(z-dz - 0, e))
         dz = z; // de sorte que z-dz = 0
-    if (distance_négligeable(x-dx - e->d, e))
+    if (distance_négligeable(z-dz - e->d, e))
         dz = z - e->d; // de sorte que z-dz = e->d
 
     if (z-dz < 0 || z-dz > e->d) {
@@ -208,9 +216,8 @@ static void bounce_on_top(particule p, s_env* e) {
         return;
     }
 
-
     // la particule revient sur le bord du haut
-    set_position(p, x-dx, y-dy,z-dz);
+    set_position(p, x-dx, y-dy, z-dz);
     // sa vitesse verticale s'oppose
     set_speed(p, vx, -vy, vz);
     // et la particule finit le mouvement qui lui reste a parcourir
@@ -241,7 +248,7 @@ static void corrected_move(particule p, float dt, s_env* e) {
     }
     if (get_x(p) > w) {
         set_position(p, get_y(p), get_x(p), get_z(p));
-        set_speed(p, get_vy(p), get_vx(p), get_vz(p));
+        set_speed(p, -get_vy(p), get_vx(p), get_vz(p));
         e->w = h;
         e->h = w;
         e->d = d; 
@@ -249,7 +256,7 @@ static void corrected_move(particule p, float dt, s_env* e) {
         bounce_on_top(p, e);
 
         set_position(p, get_y(p), get_x(p), get_z(p));
-        set_speed(p, get_vy(p), get_vx(p), get_vz(p));
+        set_speed(p, get_vy(p), -get_vx(p), get_vz(p));
         e->h = h;
         e->w = w;
         e->d = d; 
@@ -271,7 +278,7 @@ static void corrected_move(particule p, float dt, s_env* e) {
     }
 
       if (get_z(p) > d) {
-        set_position(p, get_x(p), d - get_z(p), get_y(p));
+        set_position(p, get_x(p), get_z(p), get_y(p));
         set_speed(p, get_vx(p), get_vz(p), -get_vy(p));
         e->w = h;
         e->h = w;
@@ -279,15 +286,15 @@ static void corrected_move(particule p, float dt, s_env* e) {
 
         bounce_on_top(p, e);
 
-        set_position(p, get_x(p), d - get_z(p), get_y(p));
-        set_speed(p, get_vx(p), get_vz(p), -get_vy(p));
+        set_position(p, get_x(p), get_z(p), get_y(p));
+        set_speed(p, get_vx(p), -get_vz(p), get_vy(p));
         e->h = h;
         e->w = w;
         e->d = d; 
     }
     if (get_z(p) < 0) {
         set_position(p, get_x(p), d - get_z(p), get_y(p));
-        set_speed(p, get_vx(p), get_vz(p), -get_vy(p));
+        set_speed(p, get_vx(p), -get_vz(p), get_vy(p));
         e->w = h;
         e->h = w;
         e->d = d; 
@@ -300,10 +307,6 @@ static void corrected_move(particule p, float dt, s_env* e) {
         e->w = w;
         e->d = d; 
     }
-}
-
-static inline bool in_bounds(particule p, const s_env* e) {
-    return get_x(p) >= 0 && get_y(p) >= 0 && get_z(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h && get_z(p) <= e->d;
 }
 
 vecteur frottements_fluides(particule p) {
@@ -314,8 +317,6 @@ vecteur frottements_fluides(particule p) {
 }
 
 vecteur force_attraction(particule p1, particule p2, s_env* environnement) {
-
-    // TODO : Modifier pour que le deuxième argument soit un point et non une particule
 
     float dist = distance(p1,p2);
     vecteur res;
@@ -354,6 +355,7 @@ vecteur force_perturbateurs(particule p, s_env* environnement) {
 
         particule tmp = create_particule(point_get_y(pos_obj),point_get_y(pos_obj),point_get_y(pos_obj),0,0,0,0);
         vecteur force_sur_obj = force_attraction(p,tmp,environnement);
+        multivect(force_sur_obj,obj->nature);
         
         vecteur res_tmp = ajout(res,force_sur_obj);
         free_vecteur(res);
@@ -363,6 +365,8 @@ vecteur force_perturbateurs(particule p, s_env* environnement) {
         
         objets = objets->next;
     }
+
+    return res;
 }
 
 vecteur forces_totales(int i, s_env* environnement) {
@@ -411,6 +415,10 @@ vecteur get_acceleration(int i, s_env* environnement) {
     return res;
 }
 
+static inline bool in_bounds(particule p, const s_env* e) {
+    return get_x(p) >= 0 && get_y(p) >= 0 && get_z(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h && get_z(p) <= e->d;
+}
+
 void move_particules(env e_voidptr) {
     // vérification (partielle) de la précondition
     assert(e_voidptr);
@@ -427,7 +435,7 @@ void move_particules(env e_voidptr) {
         multivect(new_v,e->dt);
 
         particule p = get_particule(e_voidptr,i);
-        set_speed(p,get_x_vect(new_v),get_y_vect(new_v),get_z_vect(new_v));
+        set_speed(p,vect_get_x(new_v) + get_vx(p),vect_get_y(new_v) + get_vy(p),vect_get_z(new_v) + get_vz(p));
 
         free_vecteur(new_v);
     }
