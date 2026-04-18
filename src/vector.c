@@ -44,6 +44,16 @@ struct ResultatIntersection {
 // Implémentation de l'accesseur
 TypeResultat get_type(ResultatIntersection res) {return res->type;}
 
+point get_res_point(ResultatIntersection res) {
+    assert (res != NULL && res->type == RESULT_POINT);
+    return res->p;
+}
+
+droite get_res_droite(ResultatIntersection res) {
+    assert (res != NULL && res->type == RESULT_DROITE);
+    return res->d;
+}
+
 /* -------------------------------------------------------*/
 /********** Fonctions basiques pour les vecteurs **********/
 /* -------------------------------------------------------*/
@@ -67,6 +77,18 @@ vecteur copie(vecteur v) {
     return (create_vecteur(x,y,z));
 }
 
+float vect_get_x(vecteur v) {
+    return v->x;
+}
+
+float vect_get_y(vecteur v) {
+    return v->y;
+}
+
+float vect_get_z(vecteur v) {
+    return v->z;
+}
+
 vecteur ajout(vecteur v1, vecteur v2) {
     float xs = v1->x + v2->x;
     float ys = v1->y + v2->y;
@@ -75,9 +97,9 @@ vecteur ajout(vecteur v1, vecteur v2) {
 }
 
 void multivect(vecteur v, float lambda) {
-    v->x += lambda*v->x;
-    v->y += lambda*v->y;
-    v->z += lambda*v->z;
+    v->x = lambda*v->x;
+    v->y = lambda*v->y;
+    v->z = lambda*v->z;
 }
 
 float norme(vecteur v) {
@@ -114,6 +136,18 @@ vecteur produit_vectoriel(vecteur v1, vecteur v2) {
 /********** Fonctions basiques pour les points ***********/
 /* ---------------------------------------------------------------------------------*/
 
+point create_point(float x, float y, float z) {
+    point p = malloc(sizeof(struct point));
+    p->x=x;
+    p->y=y;
+    p->z=z; 
+    return p;
+}
+
+void free_point(point p) {
+    free(p);
+}
+
 float point_get_x(point p) {
     float x = p->x;
     return x;
@@ -133,6 +167,17 @@ float point_get_z(point p) {
 /********** Fonctions basiques pour les droites ***********/
 /* ---------------------------------------------------------------------------------*/
 
+droite create_droite(point p, vecteur v) {
+    droite d = malloc(sizeof(struct droite));
+    d->p = p;
+    d->v = v;
+    return d;
+}
+
+void free_droite(droite d) {
+    free(d);
+}
+
 point get_point(droite d) {return d->p;}
 
 vecteur droite_get_vecteur(droite d) {return d->v;}
@@ -140,6 +185,17 @@ vecteur droite_get_vecteur(droite d) {return d->v;}
 /* ---------------------------------------------------------------------------------*/
 /********** Fonctions basiques pour les plans ***********/
 /* ---------------------------------------------------------------------------------*/
+
+plan create_plan(float d, vecteur n) {
+    plan pl = malloc(sizeof(struct plan));
+    pl->n = n;
+    pl->d = d;
+    return pl;
+}
+
+void free_plan(plan pl) {
+    free(pl);
+}
 
 vecteur plan_get_vecteur(plan p) {return p->n;}
 
@@ -184,8 +240,22 @@ vecteur directeur(point p1, point p2) {
     return v; 
 }
 
-// Fonction auxiliaire pour résoudre une ligne d'une équation paramétrique de deux lignes 
-float solution_epa(float a1, float b1, float a2, float b2) {return ((b2-b1)/(a1-a2));}
+// Fonctions auxiliaires pour inter_droite
+
+// Fonction calculant du déterminant d'une matrice 2x2 
+float det(float a1, float a2, float b1, float b2) {
+    return (a1*b2 - b1*a2);
+}
+
+// Fonction résolvant la première inconnue (t1) d'un système de Cramer 2x2 : a1*t1 + b1*t2 = c1 et a2*t1 + b2*t2 = c2
+float solution_epa1(float a1, float a2, float b1, float b2, float c1, float c2) {
+    return (det(c1,c2,b1,b2)/det(a1,a2,b1,b2));
+}
+
+// Fonction calculant l'intersection de deux droites dans l'espace 3D et résolvant l'équation : P1 + t1*V1 = P2 + t2*V2
+float solution_epa2(float a1, float a2, float b1, float b2, float c1, float c2) {
+    return (det(a1,a2,c1,c2)/det(a1,a2,b1,b2));
+}
 
 ResultatIntersection inter_droite(droite d1, droite d2) {
 
@@ -197,42 +267,104 @@ ResultatIntersection inter_droite(droite d1, droite d2) {
     float y1 = d1->p->y; float y2 = d2->p->y; 
     float z1 = d1->p->z; float z2 = d2->p->z; 
 
-    float t =0.0;
-    bool found = false; 
+    float a1 = vx1 ; float a2 = vy1 ; float a3 = vz1;
+    float b1 = -vx2 ; float b2 = -vy2 ; float b3 = -vz2;
+    float c1 = x2-x1 ; float c2 = y2-y1 ; float c3 = z2-z1;
+
+    float t1 = 0.0;
+    float t2 = 0.0;
 
     ResultatIntersection res = malloc(sizeof(struct ResultatIntersection));
 
     if (res == NULL) return NULL;
 
-    // Cas 1 : d1 et d2 sont confondues 
     vecteur prod_vect_v12 = produit_vectoriel(d1->v,d2->v); // produit vectoriel du vecteur directeur de d1 et du vecteur directeur de d2 
     vecteur dir12 = directeur(d1->p,d2->p); // vecteur directeur du point appartenant à d1 et du point appartenant à d2 
     vecteur prod_vect_p12 = produit_vectoriel(dir12,d2->v); // produit vectoriel du vecteur directeur calculé ci-dessus 
     
+    // Cas 1 : Droites confondues (parallèles et point commun). 
+    // L'intersection est donc une droite 
     if (prod_vect_v12 == 0 && prod_vect_p12 == 0) { 
         res->type = RESULT_DROITE;
-        res->d = *d1; 
+        res->d = d1; 
         return res;
     }
     
-    // Cas autre : 
+    // Cas 2 : Recherche d'un point d'intersection
+    // On résout le système sur 2 dimensions et on vérifie la cohérence sur la 3ème
 
-    if (vx1 == vx2 && x1 != x2) {return NULL;}
-    else if (vx1 != vx2) {t = solution(vx1,vx2,x1,x2);}
+    // Les trois clauses if correspondent à une intersection vide 
 
-    if (vx1 == vx2 && y1 != y2) {return NULL;}
-    else if (vy1 != vy2) {
-        float tmp_sol = solution(vy1,vy2,y1,y2);
-        if (!found) {t = tmp_sol;}
-        else if (fabs(t - tmp_sol > 0.001)) {return NULL;}
+    if (det(a1,a2,b1,b2) != 0) { // Projection sur le plan XY
+        t1 = solution_epa1(a1,a2,b1,b2,c1,c2);
+        t2 = solution_epa2(a1,a2,b1,b2,c1,c2);
+        if (fabs(a3*t1 + b3*t2 + c3) >= 10e-12) {
+            return NULL;
+        }
     }
 
-    if (vz1 == vz2 && z1 != z2) {return NULL;}
-        float tmp_sol = solution(vz1,vz2,z1,z2);
-        if (!found) {t = tmp_sol;}
-        else if (fabs(t - tmp_sol > 0.001)) {return NULL;}
+    else if (det(a1,a3,b1,b3) != 0) { // Projection sur le plan XZ
+        t1 = solution_epa1(a1,a2,b1,b2,c1,c2);
+        t2 = solution_epa2(a1,a2,b1,b2,c1,c2);
+        if (fabs(a3*t1 + b3*t2 + c3) >= 10e-12) {
+            return NULL;
+        }
+    }
 
-    res->type = RESULT_POINT; 
+    else if (det(a2,a3,b2,b3) != 0) { // Projection sur le plan YZ 
+        t1 = solution_epa1(a1,a2,b1,b2,c1,c2);
+        t2 = solution_epa2(a1,a2,b1,b2,c1,c2);
+        if (fabs(a3*t1 + b3*t2 + c3) >= 10e-12) {
+            return NULL;
+        }
+    }
+
+    // Cas 3 : Intersection trouvée donc l'intersection est un point. 
+    res->type = RESULT_POINT;
+    res->p = create_point(vx1*t1 + x1, vy1*t1 + y1, vz1*t1 + z1);
     return res;
 
+}
+
+ResultatIntersection inter_droite_plan(droite dr, plan pl) {
+
+    float a = pl->n->x;
+    float b = pl->n->y;
+    float c = pl->n->z;
+    float d = pl->d;
+
+    float vx = dr->v->x;
+    float vy = dr->v->y;
+    float vz = dr->v->z;
+
+    float x = dr->p->x;
+    float y = dr->p->y;
+    float z = dr->p->z;
+
+    ResultatIntersection res = malloc(sizeof(struct ResultatIntersection));
+
+    float prod = produit_scalaire(dr->v,pl->n); // produit scalaire du vecteur directeur de la droite et du vecteur normal au plan
+    
+    // Cas 1 : On vérifie si la droite appartient au plan, ce qui peut arriver si v et n sont orthogonaux et si au moins un point de d appartient au plan. 
+    // L'intersection est donc une droite 
+    if (prod == 0 && fabs(a*x + b*y + c*z + d) < 10e-12) {  
+        res->type = RESULT_DROITE;
+        res->d = dr; 
+        return res;
+    }
+
+    // Cas 2 : Si v et n sont orthogonaux, mais qu'au moins un point de d n'appartient pas au plan, alors il n'y a pas d'intersection
+    // L'intersection est donc vide 
+    else if (prod == 0) {
+        return NULL;
+    }
+
+    // Cas 3 : Si v et n ne sont pas orthogonaux, alors ils se croisent en un point qu'on peut déterminer avec les équations paramétriques de la droite 
+    // L'intersection est donc un point 
+    else {
+        float t = -(a*x + b*y + c*z + d)/prod;
+        res->type = RESULT_POINT;
+        res-> p = create_point(vx*t + x, vy*t + y, vz*t + z);
+        return res;
+    }
 }
