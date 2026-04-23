@@ -23,7 +23,27 @@ D.1
 
 \section{Protocole expérimental}
 
-D.2
+Nous allons maintenant faire des tests sur notre innovation.
+\\
+Ces tests seront effectués avec un environnement fixe : h = w = 100, dt = 0.1, r = 5.
+\\[5 mm]
+On initialise un environnement avec ces données, et le nombre de particules souhaité.
+\\
+Ensuite, on éxécute le code de l'innovation, et on étudie l'environnement obtenu juste après.
+\\[5 mm]
+Pour évaluer l'efficacité du code, il faut évaluer la plus grande distance entre deux particules.
+\\
+Nous nous contenterons simplement d'évaluer chacune des distances, pour ainsi prendre celle qui est minimale.
+\\[5 mm]
+Nous avons ainsi une fonction de test pour un nombre de particules donné, et un T donné, mais nous souhaiterons obtenir plusieurs données pour pouvoir les étudier.
+\\
+Ainsi, pour un T donné, nous calculerons 100 données avec comme nombre de particules 10, puis 20, puis 30 jusqu'à 1 000.
+\\
+Pour chaque itération, nous calculerons la distance minimale obtenue, ainsi que le temps d'éxécution de la fonction de test, qui comprend l'innovation et le test (pour pouvoir également se poser la question de l'optimisation du test).
+\\[5 mm] 
+Ces valeurs seront écrites dans un fichier .txt dont le nom est "test\_[T].txt".
+\\
+Nous ferons les tests avec les valeurs de T suivantes : 1, 10, 50 et 100.
 
 \section{Résultats}
 
