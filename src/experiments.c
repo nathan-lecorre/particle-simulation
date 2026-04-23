@@ -1,12 +1,16 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include "../research_10/experiments/optimization.h"
 
 
 float test_innovation(int n, float T) {
     env environnement = create_environnement(n,100,100,5,0.1);
+    
     l_innovation(environnement,T);
+
     float maxi = 0.0;
 
     for (int i = 0 ; i < n ; i++) {
@@ -21,26 +25,46 @@ float test_innovation(int n, float T) {
             }
         }
     }
-
+    
     free_environnement(environnement);
     return maxi;
 }
 
-int main() {
+void make_experiment(float T) {
+
     int nb_exp = 100;
-    float T = 10.0;
 
     float resultats[100];
     float temps[100];
+    
+    char* path = malloc(4096);
+    snprintf(path,4096,"./test_%f.txt",T);
 
-    for (int i = 2 ; i < nb_exp + 2 ; i++) {
+    FILE* f = fopen(path,"w");
 
-        float t1 = time(NULL);
-        resultats[i] = test_innovation(i,T);
-        float t2 = time(NULL);
+    for (int i = 0 ; i < nb_exp ; i++) {
 
-        temps[i] = t2 - t1;
+        float t1 = clock();
+        resultats[i] = test_innovation((i+1)*5,T);
+        float t2 = clock(); 
 
-        printf("n = %d : distance max = %f , temps d'éxécution = %f\n",i,resultats[i],temps[i]);
+        temps[i] = (t2 - t1) / CLOCKS_PER_SEC;
+
+        char* line = malloc(4096);
+        snprintf(line,4096,"%d\t%f\t%f\n",(i+1)*10,resultats[i],temps[i]);
+        fwrite(line,1,strlen(line),f);
+
+        free(line);
     }
+
+    free(path);
+    fclose(f);
+}
+
+int main() {
+    make_experiment(1);
+    make_experiment(10);
+    make_experiment(50);
+    make_experiment(100);
+    return 0;
 }
