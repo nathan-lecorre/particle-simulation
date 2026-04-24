@@ -42,6 +42,8 @@ void make_experiment(float T) {
 
     FILE* f = fopen(path,"w");
 
+    fwrite("Nb particules | Distance max | Temps d'éxécution",1,52,f);
+
     for (int i = 0 ; i < nb_exp ; i++) {
 
         float t1 = clock();
