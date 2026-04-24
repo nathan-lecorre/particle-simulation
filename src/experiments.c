@@ -5,11 +5,19 @@
 
 #include "../research_10/experiments/optimization.h"
 
+// Je met le code des tests ici car il est dit que mon code ne sera pas partagé, je ne sais pas 
+// où il est censé vraiment être.
+
 
 float test_innovation(int n, float T) {
     env environnement = create_environnement(n,100,100,5,0.1);
     
     l_innovation(environnement,T);
+    float dt = get_dt(environnement);
+
+    for (float t = 0.0 ; t < T ; t += dt) {
+        move_particules(environnement);
+    }
 
     float maxi = 0.0;
 
