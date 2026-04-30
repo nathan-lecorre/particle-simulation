@@ -1,4 +1,4 @@
-CC = gcc -Wall -Wextra -std=c99
+CC = gcc -Wall -Wextra -std=c99 -O3
 
 BIN = bin
 OBJ = obj
@@ -8,16 +8,22 @@ HEADERS = headers
 all: $(BIN)/prog_d
 
 $(OBJ)/%.o: $(SRC)/%.c $(HEADERS)/%.h
-	$(CC) -g -lm -c $< -o $@
+	$(CC) -c $< -o $@
 
 $(OBJ)/main.o: $(SRC)/main.c
-	$(CC) -g -lm -c $< -o $@
+	$(CC) -c $< -o $@
 
 $(OBJ)/%.o : research_10/experiments/%.c research_10/experiments/%.h
-	$(CC) -g -lm -c $< -o $@
+	$(CC) -c $< -o $@
 
 $(BIN)/prog_d: $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)/particules.o $(OBJ)/interface.o $(OBJ)/optimization.o $(SRC)/experiments.c
+	$(CC) $^ -o $@ -lm
+
+<<<<<<< HEAD
+$(BIN)/prog_d: $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)/particules.o $(OBJ)/interface.o $(OBJ)/optimization.o $(SRC)/experiments.c
 	$(CC) -g $^ -o $@ -lm
+=======
+>>>>>>> ee9f3ca (Tâche D.1 : bon ok j'arrête de procrastiner)
 
 PBM_FILES = $(shell find . -name "*.pbm" | sed 's/.*/"&"/')
 

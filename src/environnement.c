@@ -250,7 +250,9 @@ void move_particules(env e_voidptr) {
             float bary_part_y = get_y(e->particules[i]) - barycentre_y;
             float norme = sqrt(bary_part_x*bary_part_x + bary_part_y*bary_part_y);
 
-            if (distance_négligeable(norme, e)) {
+            // oui non mais parce que ça m'embêtait et de toute façon ce n'était pas
+            // vraiment la peine de faire ça
+            if (norme == 0.0f) {
                 // le barycentre est sur la particule
 
                 float teta = uniform(0.0f, 2*M_PI); // angle du vecteur de norme SPEED
@@ -262,3 +264,4 @@ void move_particules(env e_voidptr) {
         }
     }
 }
+
