@@ -19,11 +19,8 @@ $(OBJ)/%.o : research_10/experiments/%.c research_10/experiments/%.h
 $(BIN)/prog_d: $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)/particules.o $(OBJ)/interface.o $(OBJ)/optimization.o $(SRC)/experiments.c
 	$(CC) $^ -o $@ -lm
 
-<<<<<<< HEAD
 $(BIN)/prog_d: $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)/particules.o $(OBJ)/interface.o $(OBJ)/optimization.o $(SRC)/experiments.c
 	$(CC) -g $^ -o $@ -lm
-=======
->>>>>>> ee9f3ca (Tâche D.1 : bon ok j'arrête de procrastiner)
 
 PBM_FILES = $(shell find . -name "*.pbm" | sed 's/.*/"&"/')
 
