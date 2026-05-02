@@ -163,6 +163,10 @@ static void bounce_on_top(particule p, s_env* e) {
     corrected_move(p, dt, e);
 }
 
+static inline bool in_bounds(particule p, const s_env* e) {
+    return get_x(p) >= 0 && get_y(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h;
+}
+
 // move la particule et la fait rebondir au besoin
 // plusieurs rebonds sont possibles dans la même itération,
 // d'où les fonctions mutuellement récursives
@@ -170,52 +174,30 @@ static void corrected_move(particule p, float dt, s_env* e) {
     move(p, dt);
     float w = e->w, h = e->h;
 
-    if (get_y(p) > h) {
-        bounce_on_top(p, e);
-    }
-    // pour les cas suivants, on tourne l'environnement pour toujours
-    // se retrouver dans le cas y > h, on effectue le (ou les) rebond(s),
-    // puis on retourne l'environnement
-    if (get_y(p) < 0) {
-        set_position(p, get_x(p), h-get_y(p));
-        set_speed(p, get_vx(p), -get_vy(p));
+    while (!in_bounds(p, e)) {
 
-        bounce_on_top(p, e);
+        if (get_y(p) > h) {
+            set_position(p, get_x(p), 2*h - get_y(p));
+            set_speed(p, get_vx(p), -get_vy(p));
+        }
 
-        set_position(p, get_x(p), h-get_y(p));
-        set_speed(p, get_vx(p), -get_vy(p));
-    }
-    if (get_x(p) > w) {
-        set_position(p, get_y(p), get_x(p));
-        set_speed(p, get_vy(p), get_vx(p));
-        e->w = h;
-        e->h = w;
+        if (get_y(p) < 0) {
+            set_position(p, get_x(p), -get_y(p));
+            set_speed(p, get_vx(p), -get_vy(p));
+        }
 
-        bounce_on_top(p, e);
+        if (get_x(p) > w) {
+            set_position(p, 2*w - get_x(p), get_y(p));
+            set_speed(p, -get_vx(p), get_vy(p));
+        }
 
-        set_position(p, get_y(p), get_x(p));
-        set_speed(p, get_vy(p), get_vx(p));
-        e->h = h;
-        e->w = w;
-    }
-    if (get_x(p) < 0) {
-        set_position(p, get_y(p), w-get_x(p));
-        set_speed(p, get_vy(p), -get_vx(p));
-        e->w = h;
-        e->h = w;
-
-        bounce_on_top(p, e);
-
-        set_position(p, w-get_y(p), get_x(p));
-        set_speed(p, -get_vy(p), get_vx(p));
-        e->h = h;
-        e->w = w;
+        if (get_x(p) < 0) {
+            set_position(p, -get_x(p), get_y(p));
+            set_speed(p, -get_vx(p), get_vy(p));
+        }
     }
 }
 
-static inline bool in_bounds(particule p, const s_env* e) {
-    return get_x(p) >= 0 && get_y(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h;
-}
 
 void move_particules(env e_voidptr) {
     // vérification (partielle) de la précondition
