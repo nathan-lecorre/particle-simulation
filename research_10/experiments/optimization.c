@@ -13,7 +13,7 @@
 #define M_PI (atan(1)*4)
 #endif
 
-void revert_and_dup(const_env src, env dest) {
+static void revert_and_dup(const_env src, env dest) {
     assert(get_n(src) == get_n(dest));
     int n = get_n(src);
     for (int i = 0; i < n; i++) {
@@ -24,7 +24,7 @@ void revert_and_dup(const_env src, env dest) {
     }
 }
 
-void cancel_last_collision(env e) {
+static void cancel_last_collision(env e) {
     for (int i = 0; i < get_n(e); i++) {
         particule p_i = get_particule(e, i);
         for (int j = 0; j < get_n(e); j++) {
@@ -45,7 +45,7 @@ void cancel_last_collision(env e) {
 #define min3(a, b, c) (-max3(-(a), -(b), -(c)))
 #define min(...) MAX_SELECTOR(__VA_ARGS__, min3, min2)(__VA_ARGS__)
 
-int compare_norme2(const void* a, const void* b) {
+static int compare_norme2(const void* a, const void* b) {
     const float *xa = (const float*)a, *ya = xa+1;
     const float *xb = (const float*)b, *yb = xb+1;
     return 2*(sqrt(pow(*xa, 2) + pow(*ya, 2)) >= sqrt(pow(*xb, 2) + pow(*yb, 2)))-1;

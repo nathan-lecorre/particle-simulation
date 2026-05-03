@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define SPEED 1.0f // pour être un peut plus future-proof
 
@@ -123,81 +124,62 @@ static inline bool petit_devant(float d, float D) {
     return fabs(d) < 0.001f*fabs(D);
 }
 
-static inline bool distance_négligeable(float d, s_env* e) {
+static inline bool distance_négligeable(float d, const s_env* e) {
     // SPEED*e->dt, e->w et e->h sont les distances caractéristiques de l'environnement
     // on peut considérer toute distance petite devant ces distances caractéristiques nulle
     return petit_devant(d, SPEED*e->dt) && petit_devant(d, e->w) && petit_devant(d, e->h);
-}
-
-static void corrected_move(particule, float, s_env*);
-
-// fait rebondir une particule sur le bord du haut
-// si et seulement si celle-ci a rencontré le bord du haut en premier dans son mouvement
-static void bounce_on_top(particule p, s_env* e) {
-    float x = get_x(p), y = get_y(p);
-    float vx = get_vx(p), vy = get_vy(p);
-    // si vy = 0, alors la particule n'a pas pu dépasser la bordure du haut
-    assert(vy != 0);
-
-    // distances et temps que la particule a parcouru de trop ( y = h + dy )
-    float dy = y - e->h;
-    float dx = dy*vx/vy;
-    float dt = sqrt(dx*dx+dy*dy) / SPEED;
-
-    // traitement de edge-cases qui ne devraient probablement pas arriver
-    if (distance_négligeable(x-dx - 0, e))
-        dx = x; // de sorte que x-dx = 0
-    if (distance_négligeable(x-dx - e->w, e))
-        dx = x - e->w; // de sorte que x-dx = e->w
-
-    if (x-dx < 0 || x-dx > e->w) {
-        // la particule n'a pas rencontré le bord du haut en premier
-        return;
-    }
-
-    // la particule revient sur le bord du haut
-    set_position(p, x-dx, y-dy);
-    // sa vitesse verticale s'oppose
-    set_speed(p, vx, -vy);
-    // et la particule finit le mouvement qui lui reste a parcourir
-    corrected_move(p, dt, e);
 }
 
 static inline bool in_bounds(particule p, const s_env* e) {
     return get_x(p) >= 0 && get_y(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h;
 }
 
+static bool was_on_edge(particule p, const s_env* e, float dt) {
+    float x = get_x(p) - get_vx(p)*dt;
+    float y = get_y(p) - get_vy(p)*dt;
+    if (distance_négligeable(x, e)) x = 0;
+    if (distance_négligeable(y, e)) y = 0;
+    if (distance_négligeable(x-e->w, e)) x = e->w;
+    if (distance_négligeable(y-e->h, e)) y = e->h;
+    return (x >= 0 && x <= e->w && y >= 0 && y <= e->h)
+        && (x == 0 || y == 0 || x == e->w || y == e->h);
+}
+
 // move la particule et la fait rebondir au besoin
 // plusieurs rebonds sont possibles dans la même itération,
-// d'où les fonctions mutuellement récursives
-static void corrected_move(particule p, float dt, s_env* e) {
+static void corrected_move(particule p, float dt, const s_env* e) {
     move(p, dt);
-    float w = e->w, h = e->h;
+    float w = e->w, h = e->h; 
 
     while (!in_bounds(p, e)) {
 
-        if (get_y(p) > h) {
+        if (get_y(p) > h && was_on_edge(p, e, (get_y(p)-h)/get_vy(p))) {
             set_position(p, get_x(p), 2*h - get_y(p));
             set_speed(p, get_vx(p), -get_vy(p));
         }
 
-        if (get_y(p) < 0) {
+        if (get_y(p) < 0 && was_on_edge(p, e, get_y(p)/get_vy(p))) {
             set_position(p, get_x(p), -get_y(p));
             set_speed(p, get_vx(p), -get_vy(p));
         }
 
-        if (get_x(p) > w) {
+        if (get_x(p) > w && was_on_edge(p, e, (get_x(p)-w)/get_vx(p))) {
             set_position(p, 2*w - get_x(p), get_y(p));
             set_speed(p, -get_vx(p), get_vy(p));
         }
 
-        if (get_x(p) < 0) {
+        if (get_x(p) < 0 && was_on_edge(p, e, get_x(p)/get_vx(p))) {
             set_position(p, -get_x(p), get_y(p));
             set_speed(p, -get_vx(p), get_vy(p));
         }
     }
 }
 
+static int compare_x(const void* a, const void* b) {
+    particule p_a = *((const particule*)a);
+    particule p_b = *((const particule*)b);
+    return 2*(get_x(p_a) >= get_x(p_b))-1;
+}
 
 void move_particules(env e_voidptr) {
     // vérification (partielle) de la précondition
@@ -210,16 +192,32 @@ void move_particules(env e_voidptr) {
         assert(in_bounds(e->particules[i], e));
     }
 
+    // Pour les collisions, on ne va regarder que dans un abscisse relatif
+    // de [-r, +r] pour optimiser un peu
+    particule* sorted_parts = malloc(e->n*sizeof(particule));
+    memcpy(sorted_parts, e->particules, e->n*sizeof(particule));
+    qsort(sorted_parts, e->n, sizeof(particule), compare_x);
+
+    particule* min_p = sorted_parts;
+
     for (int i = 0; i < e->n; i++) {
         float barycentre_x = 0, barycentre_y = 0;
         int nb_voisins = 0;
-        for (int j = 0; j < e->n; j++) {
+        particule p_i = sorted_parts[i];
+
+        while(get_x(p_i)-get_x(*min_p) > e->r)
+            min_p++;
+
+        for (int j = min_p-sorted_parts; j < e->n; j++) {
             // on ne veut pas que la particule interragisse avec elle même
             if (j == i) continue; 
+            particule p_j = sorted_parts[j];
 
-            if (distance(e->particules[i], e->particules[j]) < e->r) {
-                barycentre_x += get_x(e->particules[j]);
-                barycentre_y += get_y(e->particules[j]);
+            if (get_x(p_j)-get_x(p_i) > e->r) break;
+
+            if (distance(p_i, p_j) < e->r) {
+                barycentre_x += get_x(p_j);
+                barycentre_y += get_y(p_j);
                 nb_voisins++;
             }
         }
@@ -228,20 +226,18 @@ void move_particules(env e_voidptr) {
             barycentre_y /= nb_voisins;
 
             // vecteur (barycentre des voisins)->(particule)
-            float bary_part_x = get_x(e->particules[i]) - barycentre_x;
-            float bary_part_y = get_y(e->particules[i]) - barycentre_y;
+            float bary_part_x = get_x(p_i) - barycentre_x;
+            float bary_part_y = get_y(p_i) - barycentre_y;
             float norme = sqrt(bary_part_x*bary_part_x + bary_part_y*bary_part_y);
 
-            // oui non mais parce que ça m'embêtait et de toute façon ce n'était pas
-            // vraiment la peine de faire ça
             if (norme == 0.0f) {
                 // le barycentre est sur la particule
 
                 float teta = uniform(0.0f, 2*M_PI); // angle du vecteur de norme SPEED
-                set_speed(e->particules[i], SPEED*cos(teta), SPEED*sin(teta));
+                set_speed(p_i, SPEED*cos(teta), SPEED*sin(teta));
             } else {
                 // vecteur de norme SPEED qui s'éloigne du barycentre
-                set_speed(e->particules[i], SPEED*bary_part_x/norme, SPEED*bary_part_y/norme);
+                set_speed(p_i, SPEED*bary_part_x/norme, SPEED*bary_part_y/norme);
             }
         }
     }

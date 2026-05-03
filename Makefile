@@ -19,9 +19,6 @@ $(OBJ)/%.o : research_10/experiments/%.c research_10/experiments/%.h
 $(BIN)/prog_d: $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)/particules.o $(OBJ)/interface.o $(OBJ)/optimization.o $(SRC)/experiments.c
 	$(CC) $^ -o $@ -lm
 
-$(BIN)/prog_d: $(OBJ)/distribution.o $(OBJ)/environnement.o $(OBJ)/particules.o $(OBJ)/interface.o $(OBJ)/optimization.o $(SRC)/experiments.c
-	$(CC) -g $^ -o $@ -lm
-
 PBM_FILES = $(shell find . -name "*.pbm" | sed 's/.*/"&"/')
 
 clean:
