@@ -134,17 +134,6 @@ static inline bool in_bounds(particule p, const s_env* e) {
     return get_x(p) >= 0 && get_y(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h;
 }
 
-static bool was_on_edge(particule p, const s_env* e, float dt) {
-    float x = get_x(p) - get_vx(p)*dt;
-    float y = get_y(p) - get_vy(p)*dt;
-    if (distance_négligeable(x, e)) x = 0;
-    if (distance_négligeable(y, e)) y = 0;
-    if (distance_négligeable(x-e->w, e)) x = e->w;
-    if (distance_négligeable(y-e->h, e)) y = e->h;
-    return (x >= 0 && x <= e->w && y >= 0 && y <= e->h)
-        && (x == 0 || y == 0 || x == e->w || y == e->h);
-}
-
 // move la particule et la fait rebondir au besoin
 // plusieurs rebonds sont possibles dans la même itération,
 static void corrected_move(particule p, float dt, const s_env* e) {
@@ -153,22 +142,22 @@ static void corrected_move(particule p, float dt, const s_env* e) {
 
     while (!in_bounds(p, e)) {
 
-        if (get_y(p) > h && was_on_edge(p, e, (get_y(p)-h)/get_vy(p))) {
+        if (get_y(p) > h) {
             set_position(p, get_x(p), 2*h - get_y(p));
             set_speed(p, get_vx(p), -get_vy(p));
         }
 
-        if (get_y(p) < 0 && was_on_edge(p, e, get_y(p)/get_vy(p))) {
+        if (get_y(p) < 0) {
             set_position(p, get_x(p), -get_y(p));
             set_speed(p, get_vx(p), -get_vy(p));
         }
 
-        if (get_x(p) > w && was_on_edge(p, e, (get_x(p)-w)/get_vx(p))) {
+        if (get_x(p) > w) {
             set_position(p, 2*w - get_x(p), get_y(p));
             set_speed(p, -get_vx(p), get_vy(p));
         }
 
-        if (get_x(p) < 0 && was_on_edge(p, e, get_x(p)/get_vx(p))) {
+        if (get_x(p) < 0) {
             set_position(p, -get_x(p), get_y(p));
             set_speed(p, -get_vx(p), get_vy(p));
         }
