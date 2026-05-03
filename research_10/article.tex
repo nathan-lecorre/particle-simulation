@@ -3,6 +3,9 @@
 
 \usepackage{graphicx} % Required for inserting images
 
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, decorations.pathmorphing}
+
 \title{Minimisation de la distance maximale entre deux particules}
 \author{Ilyes BENNANI - Nathan LE CORRE - Fenril GERNÉ}
 \date{April 2026}
@@ -11,15 +14,80 @@
 
 \maketitle
 
--- Ce paragraphe sera supprimé. On a 2 pages pour l'ensemble de l'article donc soyez peu gourmands en place svp. Veuillez recompiler le .tex en .pdf avant chaque commit --
+\section{Problème étudié}
 
-\section{Projet étudié}
-
-D.1
+On dispose d'un environnement $e$ et d'une durée $T$. Dans une simulation de $e$ qui durerai au moins $T$ secondes, on cherche à minimiser la distance maximale entre deux particules de $e$, lors de la première itération qui dépasse (au sens large) les $T$ secondes.
+Pour se faire, on se donne le droit de modifier les positions et vitesses initiales des particules de $e$.
 
 \section{Description de l'innovation}
 
-D.1
+On réfléchit à partir de l'état final. On cherhce à placer les particules de la manière la plus compacte possible (mais de sorte à ce qu'il soit possible d'accéder à cet état en T secondes).
+On cherche ensuite à faire la simulation à l'envers pour trouver l'état initial correspondant.
+Le principal défi lié à cette approche est qu'à chaque collision dans une simulation, de l'information est perdue : celle de la vitesse précédente des particules engagées dans la collision.
+
+On cherche alors à ce que toutes les collisions aient lieu dans un même contexte prédictible : celui de 2 particules se déplaçants sur une même droite.
+
+Pour se faire, on place les particules sur une grille d'interstice à peine supérieur à $r$, et de sorte à remplir la forme qui maximise l'aire pour un diamètre minimal : le disque.
+
+On impose pour que ce modèle fonctionne $2\times dl < r$, où $dl = dt\times 1m\cdot s^{-1}$. Dans le cas contraire, 2 particules qui se foncent dessus pourraient se dépasser AVANT d'entrer en collision pendant la simulation inverse, menant alors à un état inaccessible.
+
+\begin{tikzpicture}[
+  particle/.style={circle, draw, fill=violet!30, minimum size=1cm, inner sep=0pt},
+  velocity/.style={-{Stealth[length=8pt]}, thick, red!70!black},
+  dashed circle/.style={dashed, blue!60, thick},
+  radius/.style={dashed, gray!50, thin},
+  transition/.style={-{Stealth[length=10pt]}, thick, gray!70},
+]
+
+  % ─── État initial (gauche) ───────────────────────────
+
+  % Axe vertical discret
+  \draw[gray!30, densely dotted] (0, -2) -- (0, 2);
+
+  % Particule 1 (en haut)
+  \node[particle] (p1) at (0, 1)  {$1$};
+  \draw[dashed circle] (p1) circle (1.5cm);
+  \draw[radius] (p1) -- node[above, midway, font=\small\itshape]{$r$} ++(1.5, 0);
+  \draw[velocity] (p1) ++(0,-0.6) -- ++(0,-1.2)
+    node[right, midway, font=\small\itshape]{$\vec{v}_1$};
+
+  % Particule 2 (en bas)
+  \node[particle] (p2) at (0, -1) {$2$};
+  \draw[dashed circle] (p2) circle (1.5cm);
+  \draw[radius] (p2) -- node[above, midway, font=\small\itshape]{$r$} ++(1.5, 0);
+  \draw[velocity] (p2) ++(0, 0.6) -- ++(0, 1.2)
+    node[right, midway, font=\small\itshape]{$\vec{v}_2$};
+
+  % ─── Flèche de transition ────────────────────────────
+
+  \draw[transition] (2.8, 0) -- node[above, font=\small]{1 itération} ++(2.4, 0);
+
+  % ─── État final (droite) ─────────────────────────────
+
+  % Axe vertical discret
+  \draw[gray!30, densely dotted] (7, -2) -- (7, 2);
+
+  % Particule 1 maintenant en bas (elle a continué vers le bas)
+  \node[particle] (p1f) at (7, -0.5) {$1$};
+  \draw[dashed circle] (p1f) circle (1.5cm);
+  \draw[radius] (p1f) -- node[above, midway, font=\small\itshape]{$r$} ++(1.5, 0);
+  \draw[velocity] (p1f) ++(0,-0.6) -- ++(0,-0.8)
+    node[right, midway, font=\small\itshape]{$\vec{v}_1$};
+
+  % Particule 2 maintenant en haut (elle a continué vers le haut)
+  \node[particle] (p2f) at (7,  0.5) {$2$};
+  \draw[dashed circle] (p2f) circle (1.5cm);
+  \draw[radius] (p2f) -- node[above, midway, font=\small\itshape]{$r$} ++(1.5, 0);
+  \draw[velocity] (p2f) ++(0, 0.6) -- ++(0, 0.8)
+    node[right, midway, font=\small\itshape]{$\vec{v}_2$};
+
+  % Label temporel
+  \node[font=\small, gray!70] at (7, -3) {inaccessible quand on oppose les vitesses};
+
+\end{tikzpicture}
+
+
+Le cas $2 \times dl \ge r$ est traité de manière assez peu intéressante.
 
 \section{Protocole expérimental}
 
