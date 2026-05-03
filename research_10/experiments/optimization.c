@@ -64,7 +64,6 @@ void l_innovation(env e, float T) {
 strategie_neuneu:
         // Dans ce cas il n'y a pas grand chose qu'on puisse faire
         // pour optimiser...
-        // TODO : or IS THERE ? *Vsauce's theme starts playing*
 
         for (int i = 0; i < n; i++) {
             particule p_i = get_particule(e, i);

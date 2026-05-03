@@ -134,6 +134,19 @@ static inline bool in_bounds(particule p, const s_env* e) {
     return get_x(p) >= 0 && get_y(p) >= 0 && get_x(p) <= e->w && get_y(p) <= e->h;
 }
 
+// pour éviter les boucles infinies dues à des flottants dissidents
+static bool _was_on_edge_skip;
+// s'assure que p était sur un bord de l'environnement il y a dt secondes
+static bool was_on_edge(particule p, const s_env* e, float dt) {
+    if (_was_on_edge_skip) return true;
+    float x = get_x(p) - get_vx(p)*dt;
+    float y = get_y(p) - get_vy(p)*dt;
+    bool result = (x >= 0 && x <= e->w && y >= 0 && y <= e->h)
+        && (x == 0 || y == 0 || x == e->w || y == e->h);
+    if (result) _was_on_edge_skip = false;
+    return result;
+}
+
 // move la particule et la fait rebondir au besoin
 // plusieurs rebonds sont possibles dans la même itération,
 static void corrected_move(particule p, float dt, const s_env* e) {
@@ -141,26 +154,32 @@ static void corrected_move(particule p, float dt, const s_env* e) {
     float w = e->w, h = e->h; 
 
     while (!in_bounds(p, e)) {
+        bool modified = false;
 
-        if (get_y(p) > h) {
+        if (get_y(p) > h && was_on_edge(p, e, (get_y(p)-h)/get_vy(p))) {
             set_position(p, get_x(p), 2*h - get_y(p));
             set_speed(p, get_vx(p), -get_vy(p));
+            modified = true;
         }
 
-        if (get_y(p) < 0) {
+        if (get_y(p) < 0 && was_on_edge(p, e, get_y(p)/get_vy(p))) {
             set_position(p, get_x(p), -get_y(p));
             set_speed(p, get_vx(p), -get_vy(p));
+            modified = true;
         }
 
-        if (get_x(p) > w) {
+        if (get_x(p) > w && was_on_edge(p, e, (get_x(p)-w)/get_vx(p))) {
             set_position(p, 2*w - get_x(p), get_y(p));
             set_speed(p, -get_vx(p), get_vy(p));
+            modified = true;
         }
 
-        if (get_x(p) < 0) {
+        if (get_x(p) < 0 && was_on_edge(p, e, get_x(p)/get_vx(p))) {
             set_position(p, -get_x(p), get_y(p));
             set_speed(p, -get_vx(p), get_vy(p));
+            modified = true;
         }
+        if (!modified) _was_on_edge_skip = true;
     }
 }
 
