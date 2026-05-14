@@ -262,3 +262,15 @@ void move_particules(env e_voidptr) {
         }
     }
 }
+
+void move_particules_random(env e_voidptr) {
+    // vérification (partielle) de la précondition
+    assert(e_voidptr);
+
+    s_env* e = (s_env*)e_voidptr;
+
+    for (int i = 0; i < e->n; i++) {
+        move_random(e->particules[i], e->dt);
+        assert(in_bounds(e->particules[i], e));
+    }
+}

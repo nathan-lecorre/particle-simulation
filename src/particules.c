@@ -3,6 +3,11 @@
 #include <math.h> 
 
 #include "../headers/particules.h"
+#include "../headers/distribution.h"
+
+#ifndef M_PI
+#define M_PI atan(1)*4
+#endif
 
 struct particule {
     float x; // Coordonnée x de la particule 
@@ -66,6 +71,16 @@ void move(particule p, float dt) {
     struct particule *part= (struct particule *) p;
     part->x+=(part->vx)*dt; // Calcul de la position x de p après un temps infinitésimal dt
     part->y+=(part->vy)*dt;  // Calcul de la position y de p après un temps infinitésimal dt  
+}
+
+void move_random(particule p, float dt) {
+    struct particule *part= (struct particule *) p;
+
+    float theta = uniform(0,2*M_PI);
+    float dx = 1*dt*cos(theta);
+    float dy = 1*dt*sin(theta);
+    part->x+= dx;
+    part->y+= dy; 
 }
 
 float distance(particule p1, particule p2) {
